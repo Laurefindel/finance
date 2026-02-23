@@ -1,5 +1,0 @@
-{
-    "java.compile.nullAnalysis.mode": "automatic",
-    "java.checkstyle.configuration": "/google_checks.xml",
-    "java.configuration.updateBuildConfiguration": "interactive"
-}
