@@ -24,7 +24,9 @@ public interface UserMapper {
 
     @Named("mapAccountsToIds")
     default List<Long> mapAccountsToIds(List<Account> accounts) {
-        if (accounts == null) return Collections.emptyList();
+        if (accounts == null) {
+            return Collections.emptyList();
+        }
         return accounts.stream()
                        .map(Account::getId)
                        .toList();
@@ -32,7 +34,9 @@ public interface UserMapper {
     
     @Named("mapRolesToIds")
     default Set<Long> mapRolesToIds(Set<Role> roles) {
-        if (roles == null) return Collections.emptySet();
+        if (roles == null) {
+            return Collections.emptySet();
+        }
         return roles.stream()
                     .map(Role::getId)
                     .collect(Collectors.toSet());

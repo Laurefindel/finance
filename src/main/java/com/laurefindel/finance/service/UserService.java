@@ -24,7 +24,8 @@ public class UserService {
     private final UserMapper mapper;
     private final CurrencyService currencyService;
 
-    public UserService(UserRepository repository, RoleService roleService, UserMapper mapper, CurrencyService currencyService) {
+    public UserService(UserRepository repository, RoleService roleService,
+         UserMapper mapper, CurrencyService currencyService) {
         this.repository = repository;
         this.roleService = roleService;
         this.mapper = mapper;

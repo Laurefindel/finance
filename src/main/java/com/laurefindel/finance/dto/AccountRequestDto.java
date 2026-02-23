@@ -9,19 +9,19 @@ public class AccountRequestDto {
     private Long currencyId;
 
     public String getStatus() {
-      return status;
+        return status;
     }
 
     public void setStatus(String status) {
-      this.status = status;
+        this.status = status;
     }
 
     public BigDecimal getBalance() {
-      return balance;
+        return balance;
     }
 
     public void setBalance(BigDecimal balance) {
-      this.balance = balance;
+        this.balance = balance;
     }
 
     public Long getCurrencyId() {
@@ -33,10 +33,10 @@ public class AccountRequestDto {
     }
 
     public Long getUserId() {
-      return userId;
+        return userId;
     }
 
     public void setUserId(Long userId) {
-      this.userId = userId;
+        this.userId = userId;
     }
 }

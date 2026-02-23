@@ -21,14 +21,15 @@ public class FinancialOperationService {
     private final AccountService accountService;
     private final FinancialOperationMapper mapper;
 
-    public FinancialOperationService(FinancialOperationRepository repository, AccountService accountService, FinancialOperationMapper mapper) {
+    public FinancialOperationService(FinancialOperationRepository repository,
+         AccountService accountService, FinancialOperationMapper mapper) {
         this.repository = repository;
         this.accountService = accountService;
         this.mapper = mapper;
     }
 
     public List<FinancialOperationResponseDto> getAll() {
-    return repository.findAll()
+        return repository.findAll()
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
@@ -39,7 +40,7 @@ public class FinancialOperationService {
     }
 
     public List<FinancialOperationResponseDto> getBySender(Long senderUserId) {
-    return repository.findBySenderAccount_User_Id(senderUserId)
+        return repository.findBySenderAccount_User_Id(senderUserId)
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
@@ -50,14 +51,14 @@ public class FinancialOperationService {
     }
 
     public List<FinancialOperationResponseDto> getByReceiver(Long receiverUserId) {
-    return repository.findByReceiverAccount_User_Id(receiverUserId)
+        return repository.findByReceiverAccount_User_Id(receiverUserId)
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
     }
 
     public List<FinancialOperationResponseDto> getBySenderAccount(Long accountId) {
-    return repository.findBySenderAccountId(accountId)
+        return repository.findBySenderAccountId(accountId)
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
@@ -71,14 +72,15 @@ public class FinancialOperationService {
     }
 
     public List<FinancialOperationResponseDto> getBySenderAndReceiver(Long senderUserId, Long receiverUserId) {
-    return repository
+        return repository
             .findBySenderAccount_User_IdAndReceiverAccount_User_Id(senderUserId, receiverUserId)
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
     }
 
-    public List<FinancialOperationResponseDto> getBySenderAndReceiverAccount(Long senderAccountId, Long receiverAccountId) {
+    public List<FinancialOperationResponseDto> getBySenderAndReceiverAccount(Long senderAccountId,
+         Long receiverAccountId) {
         return repository
         .findBySenderAccountIdAndReceiverAccountId(senderAccountId, receiverAccountId)
         .stream()
@@ -96,6 +98,9 @@ public class FinancialOperationService {
     public FinancialOperationResponseDto doOperation(FinancialOperationRequestDto dto) {
         Account sender = accountService.getEntityById(dto.getSenderAccountId());
         Account receiver = accountService.getEntityById(dto.getReceiverAccountId());
+
+        sender.setBalance(sender.getBalance().subtract(dto.getAmount()));
+        receiver.setBalance(sender.getBalance().add(dto.getAmount()));
         Currency currency = sender.getCurrency();
         FinancialOperation operation = mapper.toFinancialOperation(dto, sender, receiver, currency);
         repository.save(operation);

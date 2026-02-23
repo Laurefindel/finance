@@ -18,31 +18,30 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/operations")
 public class FinancialOperationController {
 
-  private final FinancialOperationService service;
-
-  public FinancialOperationController(FinancialOperationService service) {
-    this.service = service;
-  }
-
-  @GetMapping
-  public List<FinancialOperationResponseDto> getAll(@RequestParam(required = false) Long senderUserId) {
-    return (senderUserId != null)
-        ? service.getBySender(senderUserId)
-        : service.getAll();
-  }
-
-  @GetMapping("/{id}")
-  public FinancialOperationResponseDto getById(@PathVariable Long id) {
-    return service.getById(id);
-  }
-
-  @PostMapping
-  public FinancialOperationResponseDto create(@RequestBody FinancialOperationRequestDto dto) {
-    return service.doOperation(dto);
-  }
-
-  @DeleteMapping("/{id}")
-  public void delete(@PathVariable Long id) {
-    service.delete(id);
-  }
+    private final FinancialOperationService service;  
+    public FinancialOperationController(FinancialOperationService service) {
+        this.service = service;
+    } 
+    
+    @GetMapping
+    public List<FinancialOperationResponseDto> getAll(@RequestParam(required = false) Long senderUserId) {
+        return (senderUserId != null)
+            ? service.getBySender(senderUserId)
+            : service.getAll();
+    } 
+  
+    @GetMapping("/{id}")
+    public FinancialOperationResponseDto getById(@PathVariable Long id) {
+        return service.getById(id);
+    } 
+  
+    @PostMapping
+    public FinancialOperationResponseDto create(@RequestBody FinancialOperationRequestDto dto) {
+        return service.doOperation(dto);
+    } 
+  
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
+    }
 }

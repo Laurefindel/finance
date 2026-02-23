@@ -18,24 +18,30 @@ public class CurrencyService {
         this.currencyRepository = currencyRepository;
         this.mapper = mapper;
     }
+
     public CurrencyResponseDto getById(Long id) {
         return mapper.toCurrencyResponseDto(currencyRepository.findById(id).orElseThrow()); 
     }
+
     public CurrencyResponseDto getByCode(String code) {
         return mapper.toCurrencyResponseDto(currencyRepository.findByCode(code));
     }
+
     public CurrencyResponseDto save(Currency currency) {
         return mapper.toCurrencyResponseDto(currencyRepository.save(currency));
     }
+
     public void delete(Long id) {
         currencyRepository.deleteById(id);
     }
+
     public List<CurrencyResponseDto> getByName(String name) {
         return currencyRepository.findByName(name)
                 .stream()
                 .map(mapper::toCurrencyResponseDto)
                 .toList();
     }
+    
     public List<CurrencyResponseDto> getAll() {
         return currencyRepository.findAll()
                 .stream()

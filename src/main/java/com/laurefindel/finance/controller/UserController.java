@@ -34,8 +34,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public UserResponseDto register(@RequestBody UserRequestDto userRequestDto)
-    {
+    public UserResponseDto register(@RequestBody UserRequestDto userRequestDto) {
         return service.registerUser(userRequestDto);
     }
 

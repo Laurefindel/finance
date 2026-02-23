@@ -14,52 +14,50 @@ public class AccountResponseDto {
 
 
     public UserResponseDto getUser() {
-      return user;
+        return user;
     }
   
     public void setUser(UserResponseDto user) {
-      this.user = user;
+        this.user = user;
     }
     
     public Long getId() {
-      return id;
+        return id;
     }
 
     public void setId(Long id) {
-      this.id = id;
+        this.id = id;
     }
 
     public BigDecimal getBalance() {
-      return balance;
+        return balance;
     }
 
     public void setBalance(BigDecimal balance) {
-      this.balance = balance;
+        this.balance = balance;
     }
 
     public CurrencyResponseDto getCurrency() {
-      return currency;
+        return currency;
     }
 
     public void setCurrency(CurrencyResponseDto currency) {
-      this.currency = currency;
+        this.currency = currency;
     }
 
     public List<FinancialOperationResponseDto> getOutcomingOperations() {
-      return outcomingOperations;
+        return outcomingOperations;
     }
 
     public void setOutcomingOperations(List<FinancialOperationResponseDto> outcomingOperations) {
-      this.outcomingOperations = outcomingOperations;
+        this.outcomingOperations = outcomingOperations;
     }
 
     public List<FinancialOperationResponseDto> getIncomingOperations() {
-      return incomingOperations;
+        return incomingOperations;
     }
 
     public void setIncomingOperations(List<FinancialOperationResponseDto> incomingOperations) {
-      this.incomingOperations = incomingOperations;
+        this.incomingOperations = incomingOperations;
     }
-
-    
 }

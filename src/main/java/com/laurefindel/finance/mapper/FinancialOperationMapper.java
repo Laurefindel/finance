@@ -21,5 +21,6 @@ public interface FinancialOperationMapper {
     @Mapping(target = "receiverAccount", source = "receiver")
     @Mapping(target = "currency", source = "currency")
     @Mapping(target = "createdAt", ignore = true)
-    public FinancialOperation toFinancialOperation(FinancialOperationRequestDto financialOperationRequestDto, Account sender, Account receiver, Currency currency);
+    public FinancialOperation toFinancialOperation(FinancialOperationRequestDto financialOperationRequestDto,
+         Account sender, Account receiver, Currency currency);
 }
