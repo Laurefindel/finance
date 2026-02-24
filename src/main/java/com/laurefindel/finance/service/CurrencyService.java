@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.laurefindel.finance.dto.CurrencyRequestDto;
 import com.laurefindel.finance.dto.CurrencyResponseDto;
 import com.laurefindel.finance.mapper.CurrencyMapper;
 import com.laurefindel.finance.model.entity.Currency;
@@ -51,5 +52,26 @@ public class CurrencyService {
 
     public Currency getEntityByCode(String code) {
         return currencyRepository.findByCode(code);
+    }
+
+    public CurrencyResponseDto update(Long id, CurrencyRequestDto dto) {
+        Currency currency = currencyRepository.findById(id).orElseThrow();
+        currency.setCode(dto.getCode());
+        currency.setName(dto.getName());
+        return mapper.toCurrencyResponseDto(currencyRepository.save(currency));
+    }
+
+    public CurrencyResponseDto patch(Long id, CurrencyRequestDto dto) {
+        Currency currency = currencyRepository.findById(id).orElseThrow();
+
+        if (dto.getCode() != null) {
+            currency.setCode(dto.getCode());
+        }
+
+        if (dto.getName() != null) {
+            currency.setName(dto.getName());
+        }
+
+        return mapper.toCurrencyResponseDto(currencyRepository.save(currency));
     }
 }

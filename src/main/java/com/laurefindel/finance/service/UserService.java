@@ -74,18 +74,21 @@ public class UserService {
         .map(mapper::toUserResponseDto)
         .toList();
     }
+
     public List<UserResponseDto> getByFirstName(String firstName) {
         return repository.findByFirstName(firstName)
         .stream()
         .map(mapper::toUserResponseDto)
         .toList();
     }
+
     public List<UserResponseDto> getByLastName(String lastName) {
         return repository.findByLastName(lastName)
         .stream()
         .map(mapper::toUserResponseDto)
         .toList();
     }
+
     public List<UserResponseDto> getByRoleId(Long roleId) {
         Role role = roleService.getEntityById(roleId);
         return repository.findByRoles_Name(role.getName())
@@ -113,5 +116,27 @@ public class UserService {
         User savedUser = repository.save(user);
 
         return mapper.toUserResponseDto(savedUser);
+    }
+
+    public UserResponseDto patch(Long id, UserRequestDto dto) {
+        User user = repository.findById(id).orElseThrow();
+
+        if (dto.getFirstName() != null) {
+            user.setFirstName(dto.getFirstName());
+        }
+
+        if (dto.getLastName() != null) {
+            user.setLastName(dto.getLastName());
+        }
+
+        if (dto.getEmail() != null) {
+            user.setEmail(dto.getEmail());
+        }
+
+        if (dto.getPassword() != null) {
+            user.setPassword(dto.getPassword());
+        }
+        
+        return mapper.toUserResponseDto(repository.save(user));
     }
 }

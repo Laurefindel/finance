@@ -100,7 +100,7 @@ public class FinancialOperationService {
         Account receiver = accountService.getEntityById(dto.getReceiverAccountId());
 
         sender.setBalance(sender.getBalance().subtract(dto.getAmount()));
-        receiver.setBalance(sender.getBalance().add(dto.getAmount()));
+        receiver.setBalance(receiver.getBalance().add(dto.getAmount()));
         Currency currency = sender.getCurrency();
         FinancialOperation operation = mapper.toFinancialOperation(dto, sender, receiver, currency);
         repository.save(operation);

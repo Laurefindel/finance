@@ -38,7 +38,6 @@ public class Account {
     @OneToMany(mappedBy = "receiverAccount")
     private List<FinancialOperation> incomingOperations;
 
-
     @Column(nullable = false)
     private String status;
 
