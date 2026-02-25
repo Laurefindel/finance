@@ -19,7 +19,7 @@ public interface AccountMapper {
     @Mapping(target = "currency", ignore = true)
     @Mapping(target = "outcomingOperations", ignore = true)
     @Mapping(target = "incomingOperations", ignore = true)
-    @Mapping(target = "status", constant = "ACTIVE")
-    @Mapping(target = "balance", constant = "0")
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "balance", ignore = true)
     Account toAccount(AccountRequestDto dto);
 }
