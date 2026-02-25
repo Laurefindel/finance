@@ -26,14 +26,6 @@
 		<tag/>
 		<url/>
 	</scm>
-
-	<pluginRepositories>
-    <pluginRepository>
-        <id>spring-releases</id>
-        <url>https://repo.spring.io/release</url>
-    </pluginRepository>	
-	</pluginRepositories>
-
 	<properties>
 		<java.version>21</java.version>
 	</properties>
@@ -92,6 +84,16 @@
         </annotationProcessorPaths>
     </configuration>
 			</plugin>
+			<plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>3.3.1</version>
+            <configuration>
+                <configLocation>checkstyle.xml</configLocation>
+                <violationSeverity>warning</violationSeverity>
+                <includeTestSourceDirectory>true</includeTestSourceDirectory>
+            </configuration>
+        </plugin>
 		</plugins>
 	</build>
 </project>
