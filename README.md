@@ -1,7 +1,6 @@
 
 ---
 
-```markdown
 # Finance API
 
 **Finance API** is a specialized RESTful backend application designed to manage and control personal or business financial transactions.  
