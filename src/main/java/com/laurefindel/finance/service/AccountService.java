@@ -90,4 +90,8 @@ public class AccountService {
         account.setBalance(account.getBalance().add(amount));
         return mapper.toAccountResponseDto(accountRepository.save(account));
     }
+
+    public Account save(Account account) {
+        return accountRepository.save(account);
+    }
 }

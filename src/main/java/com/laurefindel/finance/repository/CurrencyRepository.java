@@ -10,5 +10,4 @@ import java.util.List;
 public interface CurrencyRepository extends JpaRepository<Currency, Long> {
     Currency findByCode(String code);
     List<Currency> findByName(String name);
-
 }

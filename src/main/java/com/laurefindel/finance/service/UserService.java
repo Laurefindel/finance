@@ -7,7 +7,6 @@ import com.laurefindel.finance.dto.UserResponseDto;
 import com.laurefindel.finance.mapper.UserMapper;
 import com.laurefindel.finance.model.entity.Account;
 import com.laurefindel.finance.model.entity.Currency;
-import com.laurefindel.finance.model.entity.Role;
 import com.laurefindel.finance.model.entity.User;
 import com.laurefindel.finance.repository.UserRepository;
 
@@ -65,36 +64,6 @@ public class UserService {
 
     public void delete(Long id) {
         repository.deleteById(id);
-    }
-
-    public List<UserResponseDto> getByStatus(String status) {
-        return repository
-        .findByStatus(status)
-        .stream()
-        .map(mapper::toUserResponseDto)
-        .toList();
-    }
-
-    public List<UserResponseDto> getByFirstName(String firstName) {
-        return repository.findByFirstName(firstName)
-        .stream()
-        .map(mapper::toUserResponseDto)
-        .toList();
-    }
-
-    public List<UserResponseDto> getByLastName(String lastName) {
-        return repository.findByLastName(lastName)
-        .stream()
-        .map(mapper::toUserResponseDto)
-        .toList();
-    }
-
-    public List<UserResponseDto> getByRoleId(Long roleId) {
-        Role role = roleService.getEntityById(roleId);
-        return repository.findByRoles_Name(role.getName())
-        .stream()
-        .map(mapper::toUserResponseDto)
-        .toList();
     }
 
     @Transactional

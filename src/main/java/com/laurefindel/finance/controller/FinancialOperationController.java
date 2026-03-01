@@ -39,6 +39,12 @@ public class FinancialOperationController {
     public FinancialOperationResponseDto create(@RequestBody FinancialOperationRequestDto dto) {
         return service.doOperation(dto);
     } 
+
+    @PostMapping("no-transactional/")
+    public FinancialOperationResponseDto createWithoutTransactional(@RequestBody FinancialOperationRequestDto dto) {
+        return service.doOperationWithoutTransactional(dto);
+    } 
+    
   
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {

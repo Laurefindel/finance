@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -71,22 +72,6 @@ public class FinancialOperationService {
             .toList();
     }
 
-    public List<FinancialOperationResponseDto> getBySenderAndReceiver(Long senderUserId, Long receiverUserId) {
-        return repository
-            .findBySenderAccount_User_IdAndReceiverAccount_User_Id(senderUserId, receiverUserId)
-            .stream()
-            .map(mapper::toFinancialOperationResponseDto)
-            .toList();
-    }
-
-    public List<FinancialOperationResponseDto> getBySenderAndReceiverAccount(Long senderAccountId,
-         Long receiverAccountId) {
-        return repository
-        .findBySenderAccountIdAndReceiverAccountId(senderAccountId, receiverAccountId)
-        .stream()
-        .map(mapper::toFinancialOperationResponseDto)
-        .toList();
-    }
     public List<FinancialOperationResponseDto> getByCurrency(Currency currency) {
         return repository.findByCurrency(currency)
                 .stream()
@@ -100,7 +85,31 @@ public class FinancialOperationService {
         Account receiver = accountService.getEntityById(dto.getReceiverAccountId());
 
         sender.setBalance(sender.getBalance().subtract(dto.getAmount()));
+
+        if (dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Incorrect amount");
+        }
+
         receiver.setBalance(receiver.getBalance().add(dto.getAmount()));
+        Currency currency = sender.getCurrency();
+        FinancialOperation operation = mapper.toFinancialOperation(dto, sender, receiver, currency);
+        repository.save(operation);
+        return mapper.toFinancialOperationResponseDto(operation);
+    }
+
+    public FinancialOperationResponseDto doOperationWithoutTransactional(FinancialOperationRequestDto dto) {
+        Account sender = accountService.getEntityById(dto.getSenderAccountId());
+        Account receiver = accountService.getEntityById(dto.getReceiverAccountId());
+
+        sender.setBalance(sender.getBalance().subtract(dto.getAmount()));
+        accountService.save(sender);
+
+        if (dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Incorrect amount");
+        }
+
+        receiver.setBalance(receiver.getBalance().add(dto.getAmount()));
+        accountService.save(receiver);
         Currency currency = sender.getCurrency();
         FinancialOperation operation = mapper.toFinancialOperation(dto, sender, receiver, currency);
         repository.save(operation);
