@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.laurefindel.finance.dto.CurrencyRequestDto;
 import com.laurefindel.finance.dto.CurrencyResponseDto;
-import com.laurefindel.finance.model.entity.Currency;
 import com.laurefindel.finance.service.CurrencyService;
 import org.springframework.web.bind.annotation.PutMapping;
 
@@ -50,8 +49,8 @@ public class CurrencyController {
     }
 
     @PostMapping
-    public CurrencyResponseDto create(@RequestBody Currency currency) {
-        return currencyService.save(currency);
+    public CurrencyResponseDto create(@RequestBody CurrencyRequestDto dto) {
+        return currencyService.save(dto);
     }
 
     @DeleteMapping("/{id}")

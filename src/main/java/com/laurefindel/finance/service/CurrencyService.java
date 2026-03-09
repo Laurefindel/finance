@@ -28,8 +28,8 @@ public class CurrencyService {
         return mapper.toCurrencyResponseDto(currencyRepository.findByCode(code));
     }
 
-    public CurrencyResponseDto save(Currency currency) {
-        return mapper.toCurrencyResponseDto(currencyRepository.save(currency));
+    public CurrencyResponseDto save(CurrencyRequestDto currency) {
+        return mapper.toCurrencyResponseDto(currencyRepository.save(mapper.toCurrency(currency)));
     }
 
     public void delete(Long id) {
