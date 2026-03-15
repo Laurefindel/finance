@@ -1,10 +1,15 @@
 package com.laurefindel.finance.repository;
 
+import com.laurefindel.finance.dto.FinancialOperationSearchCriteria;
 import com.laurefindel.finance.model.entity.Currency;
 import com.laurefindel.finance.model.entity.FinancialOperation;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 
 import java.util.List;
@@ -25,4 +30,62 @@ public interface FinancialOperationRepository extends JpaRepository<FinancialOpe
     
     @EntityGraph(attributePaths = {"senderAccount", "receiverAccount", "currency"})
     List<FinancialOperation> findByCurrency(Currency currency);
+
+    @Query("""
+        SELECT fo
+        FROM FinancialOperation fo
+        JOIN fo.senderAccount sa
+        JOIN sa.user su
+        JOIN fo.receiverAccount ra
+        JOIN ra.user ru
+        JOIN fo.currency c
+        WHERE (:#{#criteria.senderUserId} IS NULL OR su.id = :#{#criteria.senderUserId})
+        AND (:#{#criteria.receiverUserId} IS NULL OR ru.id = :#{#criteria.receiverUserId})
+        AND (:#{#criteria.currencyCode} IS NULL OR c.code = :#{#criteria.currencyCode})
+        AND (:#{#criteria.minAmount} IS NULL OR fo.amount >= :#{#criteria.minAmount})
+        AND (:#{#criteria.maxAmount} IS NULL OR fo.amount <= :#{#criteria.maxAmount})
+        AND (:#{#criteria.fromDate} IS NULL OR fo.createdAt >= :#{#criteria.fromDate})
+        AND (:#{#criteria.toDate} IS NULL OR fo.createdAt <= :#{#criteria.toDate})
+        """)
+    Page<FinancialOperation> searchWithFiltersJpql(
+            @Param("criteria") FinancialOperationSearchCriteria criteria,
+            Pageable pageable
+    );
+    @Query(value = """
+        SELECT fo.*
+        FROM financial_operations fo
+        JOIN accounts sa ON sa.id = fo.sender_account_id
+        JOIN users su ON su.id = sa.user_id
+        JOIN accounts ra ON ra.id = fo.receiver_account_id
+        JOIN users ru ON ru.id = ra.user_id
+        JOIN currencies c ON c.id = fo.currency_id
+        WHERE (:#{#criteria.senderUserId} IS NULL OR su.id = :#{#criteria.senderUserId})
+        AND (:#{#criteria.receiverUserId} IS NULL OR ru.id = :#{#criteria.receiverUserId})
+        AND (:#{#criteria.currencyCode} IS NULL OR c.code = :#{#criteria.currencyCode})
+        AND (:#{#criteria.minAmount} IS NULL OR fo.amount >= :#{#criteria.minAmount})
+        AND (:#{#criteria.maxAmount} IS NULL OR fo.amount <= :#{#criteria.maxAmount})
+        AND (:#{#criteria.fromDate} IS NULL OR fo.created_at >= :#{#criteria.fromDate})
+        AND (:#{#criteria.toDate} IS NULL OR fo.created_at <= :#{#criteria.toDate})
+        """,
+        countQuery = """
+        SELECT COUNT(fo.id)
+        FROM financial_operations fo
+        JOIN accounts sa ON sa.id = fo.sender_account_id
+        JOIN users su ON su.id = sa.user_id
+        JOIN accounts ra ON ra.id = fo.receiver_account_id
+        JOIN users ru ON ru.id = ra.user_id
+        JOIN currencies c ON c.id = fo.currency_id
+        WHERE (:#{#criteria.senderUserId} IS NULL OR su.id = :#{#criteria.senderUserId})
+        AND (:#{#criteria.receiverUserId} IS NULL OR ru.id = :#{#criteria.receiverUserId})
+        AND (:#{#criteria.currencyCode} IS NULL OR c.code = :#{#criteria.currencyCode})
+        AND (:#{#criteria.minAmount} IS NULL OR fo.amount >= :#{#criteria.minAmount})
+        AND (:#{#criteria.maxAmount} IS NULL OR fo.amount <= :#{#criteria.maxAmount})
+        AND (:#{#criteria.fromDate} IS NULL OR fo.created_at >= :#{#criteria.fromDate})
+        AND (:#{#criteria.toDate} IS NULL OR fo.created_at <= :#{#criteria.toDate})
+        """,
+        nativeQuery = true)
+    Page<FinancialOperation> searchWithFiltersNative(
+            @Param("criteria") FinancialOperationSearchCriteria criteria,
+            Pageable pageable
+    );
 }

@@ -2,10 +2,15 @@ package com.laurefindel.finance.controller;
 
 import com.laurefindel.finance.dto.FinancialOperationRequestDto;
 import com.laurefindel.finance.dto.FinancialOperationResponseDto;
+import com.laurefindel.finance.dto.FinancialOperationSearchCriteria;
 import com.laurefindel.finance.service.FinancialOperationService;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +34,16 @@ public class FinancialOperationController {
             ? service.getBySender(senderUserId)
             : service.getAll();
     } 
+
+    @GetMapping("/search")
+    public Page<FinancialOperationResponseDto> search(
+        @ModelAttribute FinancialOperationSearchCriteria criteria,
+        @RequestParam(defaultValue = "jpql") String queryType,
+        @PageableDefault(size = 10, sort = "createdAt") Pageable pageable
+    ) {
+        boolean useNativeQuery = "native".equalsIgnoreCase(queryType);
+        return service.searchWithFilters(criteria, pageable, useNativeQuery);
+    }
   
     @GetMapping("/{id}")
     public FinancialOperationResponseDto getById(@PathVariable Long id) {
