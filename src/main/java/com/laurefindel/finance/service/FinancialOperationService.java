@@ -12,7 +12,9 @@ import com.laurefindel.finance.repository.FinancialOperationRepository;
 import jakarta.transaction.Transactional;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,7 +103,8 @@ public class FinancialOperationService {
             ? null
             : criteria.getCurrencyCode().trim().toUpperCase();
         criteria.setCurrencyCode(normalizedCurrencyCode);
-        FinancialOperationSearchKey key = new FinancialOperationSearchKey(criteria, pageable, useNativeQuery);
+        Pageable effectivePageable = useNativeQuery ? toNativePageable(pageable) : pageable;
+        FinancialOperationSearchKey key = new FinancialOperationSearchKey(criteria, effectivePageable, useNativeQuery);
 
         Page<FinancialOperationResponseDto> cached = operationSearchIndex.get(key);
         if (cached != null) {
@@ -114,12 +117,31 @@ public class FinancialOperationService {
             key.hashCode(), useNativeQuery ? "native" : "jpql");
 
         Page<FinancialOperation> operationsPage = useNativeQuery
-            ? repository.searchWithFiltersNative(criteria, pageable)
-            : repository.searchWithFiltersJpql(criteria, pageable);
+            ? repository.searchWithFiltersNative(criteria, effectivePageable)
+            : repository.searchWithFiltersJpql(criteria, effectivePageable);
 
         Page<FinancialOperationResponseDto> resultPage = operationsPage.map(mapper::toFinancialOperationResponseDto);
         operationSearchIndex.put(key, resultPage);
         return resultPage;
+    }
+
+    private Pageable toNativePageable(Pageable pageable) {
+        if (pageable == null || pageable.getSort().isUnsorted()) {
+            return pageable;
+        }
+
+        List<Sort.Order> nativeOrders = pageable.getSort().stream()
+            .map(order -> new Sort.Order(order.getDirection(), toSnakeCase(order.getProperty())))
+            .toList();
+
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(nativeOrders));
+    }
+
+    private String toSnakeCase(String value) {
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        return value.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
     }
 
     @Transactional
