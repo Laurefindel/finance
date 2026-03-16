@@ -1,11 +1,23 @@
 package com.laurefindel.finance.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+@Schema(description = "Request payload for user registration and update")
 public class UserRequestDto {
 
+    @NotBlank(message = "First name cannot be blank")
     private String firstName;
+    
+    @NotBlank(message = "Last name cannot be blank")
     private String lastName;
+
+    @Email(message = "Email should be valid")
     private String email;
+
+    @NotBlank(message = "Password cannot be blank")
     private String password;    
 
     public String getFirstName() {

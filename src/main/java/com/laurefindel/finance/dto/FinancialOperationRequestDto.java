@@ -2,11 +2,29 @@ package com.laurefindel.finance.dto;
 
 import java.math.BigDecimal;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+
+@Schema(description = "Request payload for creating financial operation")
 public class FinancialOperationRequestDto {
 
-    private Long senderAccountId; 
+    @NotNull(message = "Sender account ID cannot be null")
+    @Positive
+    private Long senderAccountId;
+
+    @NotNull(message = "Receiver account ID cannot be null")
+    @Positive
     private Long receiverAccountId;
+
+    @NotNull(message = "Amount cannot be null")
+    @DecimalMin(value = "0", message = "Amount must be positive")
     private BigDecimal amount;
+
+    @Size(max = 255, message = "Description cannot be longer than 255 characters")
     private String description;
   
     public Long getSenderAccountId() {

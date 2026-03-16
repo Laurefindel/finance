@@ -3,6 +3,9 @@ package com.laurefindel.finance.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Account response payload")
 public class AccountResponseDto {
 
     private Long id;

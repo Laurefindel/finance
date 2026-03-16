@@ -3,6 +3,12 @@ package com.laurefindel.finance.controller;
 import java.math.BigDecimal;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -20,8 +26,12 @@ import com.laurefindel.finance.model.entity.Currency;
 import com.laurefindel.finance.service.AccountService;
 import com.laurefindel.finance.service.CurrencyService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/accounts")
+@Validated
+@Tag(name = "Accounts", description = "Operations with user accounts")
 public class AccountController {
 
     private final AccountService accountService;
@@ -34,44 +44,51 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    public AccountResponseDto getById(@PathVariable Long id) {
-        return accountService.getById(id);
+    @Operation(summary = "Get account by id")
+    public ResponseEntity<AccountResponseDto> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(accountService.getById(id));
     }
 
     @GetMapping
-    public List<AccountResponseDto> getAccounts(
+    @Operation(summary = "Get accounts with optional filters by user or currency")
+    public ResponseEntity<List<AccountResponseDto>> getAccounts(
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) String currency) {
 
         if (userId != null && currency != null) {
             Currency curr = currencyService.getEntityByCode(currency);
-            return accountService.getByUserIdAndCurrency(userId, curr);
+            return ResponseEntity.ok(accountService.getByUserIdAndCurrency(userId, curr));
         }
 
         if (userId != null) {
-            return accountService.getByUserId(userId);
+            return ResponseEntity.ok(accountService.getByUserId(userId));
         }
 
         if (currency != null) {
             Currency curr = currencyService.getEntityByCode(currency);
-            return accountService.getByCurrency(curr);
+            return ResponseEntity.ok(accountService.getByCurrency(curr));
         }
 
-        return accountService.getAll();
+        return ResponseEntity.ok(accountService.getAll());
     }
 
     @PostMapping
-    public AccountResponseDto create(@RequestBody AccountRequestDto dto) {
-        return accountService.save(dto);
+    @Operation(summary = "Create account")
+    public ResponseEntity<AccountResponseDto> create(@Valid @RequestBody AccountRequestDto dto) {
+        AccountResponseDto account = accountService.save(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(account);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    @Operation(summary = "Delete account")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         accountService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/replenish/{amount}")
-    public AccountResponseDto replenish(@PathVariable Long id, @PathVariable BigDecimal amount) {
-        return accountService.replenish(id, amount);
+    @Operation(summary = "Replenish account balance")
+    public ResponseEntity<AccountResponseDto> replenish(@PathVariable Long id, @PathVariable BigDecimal amount) {
+        return ResponseEntity.ok(accountService.replenish(id, amount));
     }
 }

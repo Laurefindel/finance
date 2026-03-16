@@ -1,5 +1,8 @@
 package com.laurefindel.finance.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Currency response payload")
 public class CurrencyResponseDto {
 
     private Long id;

@@ -2,6 +2,9 @@ package com.laurefindel.finance.dto;
 
 import java.math.BigDecimal;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Financial operation response payload")
 public class FinancialOperationResponseDto {
     private Long id;
     private Long senderAccountId;

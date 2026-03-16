@@ -2,6 +2,12 @@ package com.laurefindel.finance.controller;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -15,11 +21,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.laurefindel.finance.dto.CurrencyRequestDto;
 import com.laurefindel.finance.dto.CurrencyResponseDto;
 import com.laurefindel.finance.service.CurrencyService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.PutMapping;
 
 
 @RestController
 @RequestMapping("/currencies")
+@Validated
+@Tag(name = "Currencies", description = "Currency management endpoints")
 public class CurrencyController {
 
     private final CurrencyService currencyService;
@@ -29,42 +40,54 @@ public class CurrencyController {
     }
 
     @GetMapping
-    public List<CurrencyResponseDto> getAll() {
-        return currencyService.getAll();
+    @Operation(summary = "Get all currencies")
+    public ResponseEntity<List<CurrencyResponseDto>> getAll() {
+        return ResponseEntity.ok(currencyService.getAll());
     }
 
     @GetMapping("/{id}")
-    public CurrencyResponseDto getById(@PathVariable Long id) {
-        return currencyService.getById(id);
+    @Operation(summary = "Get currency by id")
+    public ResponseEntity<CurrencyResponseDto> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(currencyService.getById(id));
     }
 
     @GetMapping("/by-code")
-    public CurrencyResponseDto getByCode(@RequestParam String code) {
-        return currencyService.getByCode(code);
+    @Operation(summary = "Get currency by code")
+    public ResponseEntity<CurrencyResponseDto> getByCode(@RequestParam String code) {
+        return ResponseEntity.ok(currencyService.getByCode(code));
     }
 
     @GetMapping("/by-name")
-    public List<CurrencyResponseDto> getByName(@RequestParam String name) {
-        return currencyService.getByName(name);
+    @Operation(summary = "Get currencies by name")
+    public ResponseEntity<List<CurrencyResponseDto>> getByName(@RequestParam String name) {
+        return ResponseEntity.ok(currencyService.getByName(name));
     }
 
     @PostMapping
-    public CurrencyResponseDto create(@RequestBody CurrencyRequestDto dto) {
-        return currencyService.save(dto);
+    @Operation(summary = "Create currency")
+    public ResponseEntity<CurrencyResponseDto> create(@Valid @RequestBody CurrencyRequestDto dto) {
+        CurrencyResponseDto currency = currencyService.save(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(currency);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    @Operation(summary = "Delete currency")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         currencyService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
-    public CurrencyResponseDto putCurrency(@PathVariable Long id, @RequestBody CurrencyRequestDto dto) {
-        return currencyService.update(id, dto);
+    @Operation(summary = "Replace currency")
+    public ResponseEntity<CurrencyResponseDto> putCurrency(@PathVariable Long id, 
+        @Valid @RequestBody CurrencyRequestDto dto) {
+        return ResponseEntity.ok(currencyService.update(id, dto));
     }
 
     @PatchMapping("/{id}")
-    public CurrencyResponseDto patchCurrency(@PathVariable Long id, @RequestBody CurrencyRequestDto dto) {
-        return currencyService.patch(id, dto);
+    @Operation(summary = "Update currency partially")
+    public ResponseEntity<CurrencyResponseDto> patchCurrency(@PathVariable Long id, 
+        @Valid @RequestBody CurrencyRequestDto dto) {
+        return ResponseEntity.ok(currencyService.patch(id, dto));
     }
 }

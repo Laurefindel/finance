@@ -1,7 +1,19 @@
 package com.laurefindel.finance.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
+@Schema(description = "Request payload for account creation")
 public class AccountRequestDto {
-    private Long userId;  
+
+    @NotNull(message = "User ID cannot be null")
+    @Positive
+    private Long userId;
+    
+    @NotNull(message = "Currency ID cannot be null")
+    @Positive
     private Long currencyId;
 
     public Long getCurrencyId() {

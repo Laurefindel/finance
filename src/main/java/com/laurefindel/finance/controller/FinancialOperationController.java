@@ -4,10 +4,20 @@ import com.laurefindel.finance.dto.FinancialOperationRequestDto;
 import com.laurefindel.finance.dto.FinancialOperationResponseDto;
 import com.laurefindel.finance.dto.FinancialOperationSearchCriteria;
 import com.laurefindel.finance.service.FinancialOperationService;
+
+import jakarta.validation.Valid;
+
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -21,6 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/operations")
+@Validated
+@Tag(name = "Operations", description = "Financial operations endpoints")
 public class FinancialOperationController {
 
     private final FinancialOperationService service;  
@@ -29,40 +41,42 @@ public class FinancialOperationController {
     } 
     
     @GetMapping
-    public List<FinancialOperationResponseDto> getAll(@RequestParam(required = false) Long senderUserId) {
+    @Operation(summary = "Get operations or filter by sender user")
+    public ResponseEntity<List<FinancialOperationResponseDto>> getAll(@RequestParam(required = false) 
+        Long senderUserId) {
         return (senderUserId != null)
-            ? service.getBySender(senderUserId)
-            : service.getAll();
+            ? ResponseEntity.ok(service.getBySender(senderUserId))
+            : ResponseEntity.ok(service.getAll());
     } 
 
     @GetMapping("/search")
-    public Page<FinancialOperationResponseDto> search(
-        @ModelAttribute FinancialOperationSearchCriteria criteria,
+    @Operation(summary = "Search operations with filters and pagination")
+    public ResponseEntity<Page<FinancialOperationResponseDto>> search(
+        @Valid @ModelAttribute FinancialOperationSearchCriteria criteria,
         @RequestParam(defaultValue = "jpql") String queryType,
         @PageableDefault(size = 10, sort = "createdAt") Pageable pageable
     ) {
         boolean useNativeQuery = "native".equalsIgnoreCase(queryType);
-        return service.searchWithFilters(criteria, pageable, useNativeQuery);
+        return ResponseEntity.ok(service.searchWithFilters(criteria, pageable, useNativeQuery));
     }
   
     @GetMapping("/{id}")
-    public FinancialOperationResponseDto getById(@PathVariable Long id) {
-        return service.getById(id);
+    @Operation(summary = "Get operation by id")
+    public ResponseEntity<FinancialOperationResponseDto> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
     } 
   
     @PostMapping
-    public FinancialOperationResponseDto create(@RequestBody FinancialOperationRequestDto dto) {
-        return service.doOperation(dto);
-    } 
-
-    @PostMapping("no-transactional/")
-    public FinancialOperationResponseDto createWithoutTransactional(@RequestBody FinancialOperationRequestDto dto) {
-        return service.doOperationWithoutTransactional(dto);
-    } 
-    
+    @Operation(summary = "Create financial operation")
+    public ResponseEntity<FinancialOperationResponseDto> create(@Valid @RequestBody FinancialOperationRequestDto dto) {
+        FinancialOperationResponseDto operation = service.doOperation(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(operation);
+    }  
   
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    @Operation(summary = "Delete financial operation")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
