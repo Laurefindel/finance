@@ -163,26 +163,6 @@ public class FinancialOperationService {
         return mapper.toFinancialOperationResponseDto(operation);
     }
 
-    public FinancialOperationResponseDto doOperationWithoutTransactional(FinancialOperationRequestDto dto) {
-        Account sender = accountService.getEntityById(dto.getSenderAccountId());
-        Account receiver = accountService.getEntityById(dto.getReceiverAccountId());
-
-        sender.setBalance(sender.getBalance().subtract(dto.getAmount()));
-        accountService.save(sender);
-
-        if (dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Incorrect amount");
-        }
-
-        receiver.setBalance(receiver.getBalance().add(dto.getAmount()));
-        accountService.save(receiver);
-        Currency currency = sender.getCurrency();
-        FinancialOperation operation = mapper.toFinancialOperation(dto, sender, receiver, currency);
-        repository.save(operation);
-        invalidateSearchIndex();
-        return mapper.toFinancialOperationResponseDto(operation);
-    }
-
     public void invalidateSearchIndex() {
         int previousSize = operationSearchIndex.size();
         operationSearchIndex.clear();
