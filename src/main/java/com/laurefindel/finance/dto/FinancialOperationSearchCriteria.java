@@ -8,19 +8,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "Search criteria for financial operations")
 public class FinancialOperationSearchCriteria {
 
-    @NotNull(message = "At least one search criteria must be provided")
     private Long senderUserId;
 
-    @NotNull(message = "At least one search criteria must be provided")
     private Long receiverUserId;
 
-    @NotBlank(message = "Currency code cannot be blank")
     private String currencyCode;
     
     @DecimalMin(value = "0", message = "Minimum amount must be positive")

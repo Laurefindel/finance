@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,12 +28,16 @@ import java.util.Map;
 public class FinancialOperationService {
 
     private static final Logger LOG = LoggerFactory.getLogger(FinancialOperationService.class);
+    private static final String QUERY_TYPE_NATIVE = "native";
+    private static final String QUERY_TYPE_JPQL = "jpql";
+    private static final String SORT_PROPERTY_CREATED_AT_JPQL = "createdAt";
+    private static final String SORT_PROPERTY_CREATED_AT_NATIVE = "created_at";
 
     private final FinancialOperationRepository repository;
     private final AccountService accountService;
     private final FinancialOperationMapper mapper;
     private final Map<FinancialOperationSearchKey, Page<FinancialOperationResponseDto>> operationSearchIndex =
-        Collections.synchronizedMap(new HashMap<>());
+        new HashMap<>();
 
     public FinancialOperationService(FinancialOperationRepository repository,
          AccountService accountService, FinancialOperationMapper mapper) {
@@ -102,19 +105,22 @@ public class FinancialOperationService {
         String normalizedCurrencyCode = criteria.getCurrencyCode() == null
             ? null
             : criteria.getCurrencyCode().trim().toUpperCase();
+        if (normalizedCurrencyCode != null && normalizedCurrencyCode.isBlank()) {
+            normalizedCurrencyCode = null;
+        }
         criteria.setCurrencyCode(normalizedCurrencyCode);
-        Pageable effectivePageable = useNativeQuery ? toNativePageable(pageable) : pageable;
+        Pageable effectivePageable = toEffectivePageable(pageable, useNativeQuery);
         FinancialOperationSearchKey key = new FinancialOperationSearchKey(criteria, effectivePageable, useNativeQuery);
 
         Page<FinancialOperationResponseDto> cached = operationSearchIndex.get(key);
         if (cached != null) {
             LOG.debug("CACHE HIT: searchWithFilters key={} (queryType={})", 
-                key.hashCode(), useNativeQuery ? "native" : "jpql");
+                key.hashCode(), useNativeQuery ? QUERY_TYPE_NATIVE : QUERY_TYPE_JPQL);
             return cached;
         }
 
         LOG.debug("CACHE MISS: searchWithFilters key={} (queryType={})", 
-            key.hashCode(), useNativeQuery ? "native" : "jpql");
+            key.hashCode(), useNativeQuery ? QUERY_TYPE_NATIVE : QUERY_TYPE_JPQL);
 
         Page<FinancialOperation> operationsPage = useNativeQuery
             ? repository.searchWithFiltersNative(criteria, effectivePageable)
@@ -125,23 +131,36 @@ public class FinancialOperationService {
         return resultPage;
     }
 
-    private Pageable toNativePageable(Pageable pageable) {
+    private Pageable toEffectivePageable(Pageable pageable, boolean useNativeQuery) {
         if (pageable == null || pageable.getSort().isUnsorted()) {
             return pageable;
         }
 
-        List<Sort.Order> nativeOrders = pageable.getSort().stream()
-            .map(order -> new Sort.Order(order.getDirection(), toSnakeCase(order.getProperty())))
+        List<Sort.Order> safeOrders = pageable.getSort().stream()
+            .map(order -> new Sort.Order(
+                order.getDirection(),
+                normalizeSortProperty(order.getProperty(), useNativeQuery)
+            ))
             .toList();
 
-        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(nativeOrders));
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(safeOrders));
     }
 
-    private String toSnakeCase(String value) {
-        if (value == null || value.isBlank()) {
-            return value;
-        }
-        return value.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+    private String normalizeSortProperty(String property, boolean useNativeQuery) {
+        String normalized = property == null ? "" : property.trim();
+
+        return switch (normalized) {
+            case "id" -> "id";
+            case "amount" -> "amount";
+            case SORT_PROPERTY_CREATED_AT_JPQL, SORT_PROPERTY_CREATED_AT_NATIVE -> useNativeQuery
+                ? SORT_PROPERTY_CREATED_AT_NATIVE
+                : SORT_PROPERTY_CREATED_AT_JPQL;
+            default -> {
+                LOG.warn("Unsupported sort property '{}' for queryType='{}'. Fallback to createdAt", 
+                    property, useNativeQuery ? QUERY_TYPE_NATIVE : QUERY_TYPE_JPQL);
+                yield useNativeQuery ? SORT_PROPERTY_CREATED_AT_NATIVE : SORT_PROPERTY_CREATED_AT_JPQL;
+            }
+        };
     }
 
     @Transactional

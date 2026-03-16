@@ -39,13 +39,13 @@ public interface FinancialOperationRepository extends JpaRepository<FinancialOpe
         JOIN fo.receiverAccount ra
         JOIN ra.user ru
         JOIN fo.currency c
-        WHERE (:#{#criteria.senderUserId} IS NULL OR su.id = :#{#criteria.senderUserId})
-        AND (:#{#criteria.receiverUserId} IS NULL OR ru.id = :#{#criteria.receiverUserId})
-        AND (:#{#criteria.currencyCode} IS NULL OR c.code = :#{#criteria.currencyCode})
-        AND (:#{#criteria.minAmount} IS NULL OR fo.amount >= :#{#criteria.minAmount})
-        AND (:#{#criteria.maxAmount} IS NULL OR fo.amount <= :#{#criteria.maxAmount})
-        AND (:#{#criteria.fromDate} IS NULL OR fo.createdAt >= :#{#criteria.fromDate})
-        AND (:#{#criteria.toDate} IS NULL OR fo.createdAt <= :#{#criteria.toDate})
+        WHERE su.id = COALESCE(:#{#criteria.senderUserId}, su.id)
+        AND ru.id = COALESCE(:#{#criteria.receiverUserId}, ru.id)
+        AND c.code = COALESCE(:#{#criteria.currencyCode}, c.code)
+        AND fo.amount >= COALESCE(:#{#criteria.minAmount}, fo.amount)
+        AND fo.amount <= COALESCE(:#{#criteria.maxAmount}, fo.amount)
+        AND fo.createdAt >= COALESCE(:#{#criteria.fromDate}, fo.createdAt)
+        AND fo.createdAt <= COALESCE(:#{#criteria.toDate}, fo.createdAt)
         """)
     Page<FinancialOperation> searchWithFiltersJpql(
             @Param("criteria") FinancialOperationSearchCriteria criteria,
