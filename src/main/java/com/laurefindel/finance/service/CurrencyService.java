@@ -25,22 +25,22 @@ public class CurrencyService {
     }
 
     public CurrencyResponseDto getById(Long id) {
-        LOG.debug("Fetching currency by id={}", id);
+        LOG.debug("Fetching currency by id");
         return mapper.toCurrencyResponseDto(currencyRepository.findById(id).orElseThrow()); 
     }
 
     public CurrencyResponseDto getByCode(String code) {
-        LOG.debug("Fetching currency by code={}", code);
+        LOG.debug("Fetching currency by code");
         return mapper.toCurrencyResponseDto(currencyRepository.findByCode(code));
     }
 
     public CurrencyResponseDto save(CurrencyRequestDto currency) {
-        LOG.info("Creating currency code={} name={}", currency.getCode(), currency.getName());
+        LOG.info("Creating currency");
         return mapper.toCurrencyResponseDto(currencyRepository.save(mapper.toCurrency(currency)));
     }
 
     public void delete(Long id) {
-        LOG.info("Deleting currency id={}", id);
+        LOG.info("Deleting currency");
         currencyRepository.deleteById(id);
     }
 
@@ -49,7 +49,7 @@ public class CurrencyService {
                 .stream()
                 .map(mapper::toCurrencyResponseDto)
                 .toList();
-        LOG.debug("Fetched {} currencies by name={}", currencies.size(), name);
+        LOG.debug("Fetched currencies by name, count={}", currencies.size());
         return currencies;
     }
     
@@ -63,22 +63,22 @@ public class CurrencyService {
     }
 
     public Currency getEntityByCode(String code) {
-        LOG.debug("Fetching currency entity by code={}", code);
+        LOG.debug("Fetching currency entity by code");
         return currencyRepository.findByCode(code);
     }
 
     public CurrencyResponseDto update(Long id, CurrencyRequestDto dto) {
-        LOG.info("Updating currency id={}", id);
+        LOG.info("Updating currency");
         Currency currency = currencyRepository.findById(id).orElseThrow();
         currency.setCode(dto.getCode());
         currency.setName(dto.getName());
         Currency savedCurrency = currencyRepository.save(currency);
-        LOG.info("Currency updated id={} code={}", savedCurrency.getId(), savedCurrency.getCode());
+        LOG.info("Currency updated id={}", savedCurrency.getId());
         return mapper.toCurrencyResponseDto(savedCurrency);
     }
 
     public CurrencyResponseDto patch(Long id, CurrencyRequestDto dto) {
-        LOG.info("Patching currency id={}", id);
+        LOG.info("Patching currency");
         Currency currency = currencyRepository.findById(id).orElseThrow();
 
         if (dto.getCode() != null) {
@@ -90,7 +90,7 @@ public class CurrencyService {
         }
 
         Currency savedCurrency = currencyRepository.save(currency);
-        LOG.info("Currency patched id={} code={}", savedCurrency.getId(), savedCurrency.getCode());
+        LOG.info("Currency patched id={}", savedCurrency.getId());
         return mapper.toCurrencyResponseDto(savedCurrency);
     }
 }

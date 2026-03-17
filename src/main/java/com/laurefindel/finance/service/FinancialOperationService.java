@@ -28,8 +28,6 @@ import java.util.Map;
 public class FinancialOperationService {
 
     private static final Logger LOG = LoggerFactory.getLogger(FinancialOperationService.class);
-    private static final String QUERY_TYPE_NATIVE = "native";
-    private static final String QUERY_TYPE_JPQL = "jpql";
     private static final String SORT_PROPERTY_CREATED_AT_JPQL = "createdAt";
     private static final String SORT_PROPERTY_CREATED_AT_NATIVE = "created_at";
 
@@ -56,7 +54,7 @@ public class FinancialOperationService {
     }
 
     public FinancialOperationResponseDto getById(Long id) {
-        LOG.debug("Fetching operation by id={}", id);
+        LOG.debug("Fetching operation by id");
         return mapper.toFinancialOperationResponseDto(repository.findById(id).orElseThrow());
     }
 
@@ -65,12 +63,12 @@ public class FinancialOperationService {
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
-        LOG.debug("Fetched {} operations by senderUserId={}", operations.size(), senderUserId);
+        LOG.debug("Fetched operations by sender user id, count={}", operations.size());
         return operations;
     }
 
     public void delete(Long id) {
-        LOG.info("Deleting operation id={}", id);
+        LOG.info("Deleting operation");
         repository.deleteById(id);
         invalidateSearchIndex();
     }
@@ -80,7 +78,7 @@ public class FinancialOperationService {
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
-        LOG.debug("Fetched {} operations by receiverUserId={}", operations.size(), receiverUserId);
+        LOG.debug("Fetched operations by receiver user id, count={}", operations.size());
         return operations;
     }
 
@@ -89,7 +87,7 @@ public class FinancialOperationService {
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
-        LOG.debug("Fetched {} operations by senderAccountId={}", operations.size(), accountId);
+        LOG.debug("Fetched operations by sender account id, count={}", operations.size());
         return operations;
     }
 
@@ -98,17 +96,16 @@ public class FinancialOperationService {
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
-        LOG.debug("Fetched {} operations by receiverAccountId={}", operations.size(), accountId);
+        LOG.debug("Fetched operations by receiver account id, count={}", operations.size());
         return operations;
     }
 
     public List<FinancialOperationResponseDto> getByCurrency(Currency currency) {
-        String currencyCode = currency == null ? null : currency.getCode();
         List<FinancialOperationResponseDto> operations = repository.findByCurrency(currency)
                 .stream()
                 .map(mapper::toFinancialOperationResponseDto)
                 .toList();
-        LOG.debug("Fetched {} operations by currencyCode={}", operations.size(), currencyCode);
+        LOG.debug("Fetched operations by currency, count={}", operations.size());
         return operations;
     }
 
@@ -117,11 +114,7 @@ public class FinancialOperationService {
         Pageable pageable,
         boolean useNativeQuery
     ) {
-        String queryType = useNativeQuery ? QUERY_TYPE_NATIVE : QUERY_TYPE_JPQL;
-        LOG.debug("Searching operations with queryType={} page={} size={}",
-            queryType,
-            pageable == null ? null : pageable.getPageNumber(),
-            pageable == null ? null : pageable.getPageSize());
+        LOG.debug("Searching operations with filters");
 
         String normalizedCurrencyCode = criteria.getCurrencyCode() == null
             ? null
@@ -139,13 +132,11 @@ public class FinancialOperationService {
 
         Page<FinancialOperationResponseDto> cached = operationSearchIndex.get(key);
         if (cached != null) {
-            LOG.debug("CACHE HIT: searchWithFilters key={} (queryType={})", 
-                key.hashCode(), queryType);
+            LOG.debug("CACHE HIT: searchWithFilters");
             return cached;
         }
 
-        LOG.debug("CACHE MISS: searchWithFilters key={} (queryType={})", 
-            key.hashCode(), queryType);
+        LOG.debug("CACHE MISS: searchWithFilters");
 
         Page<FinancialOperation> operationsPage = useNativeQuery
             ? repository.searchWithFiltersNative(criteria, effectivePageable)
@@ -184,8 +175,7 @@ public class FinancialOperationService {
                 ? SORT_PROPERTY_CREATED_AT_NATIVE
                 : SORT_PROPERTY_CREATED_AT_JPQL;
             default -> {
-                LOG.warn("Unsupported sort property '{}' for queryType='{}'. Fallback to createdAt", 
-                    property, useNativeQuery ? QUERY_TYPE_NATIVE : QUERY_TYPE_JPQL);
+                LOG.warn("Unsupported sort property. Fallback to createdAt");
                 yield useNativeQuery ? SORT_PROPERTY_CREATED_AT_NATIVE : SORT_PROPERTY_CREATED_AT_JPQL;
             }
         };
@@ -193,8 +183,7 @@ public class FinancialOperationService {
 
     @Transactional
     public FinancialOperationResponseDto doOperation(FinancialOperationRequestDto dto) {
-        LOG.info("Starting operation senderAccountId={} receiverAccountId={} amount={}",
-            dto.getSenderAccountId(), dto.getReceiverAccountId(), dto.getAmount());
+        LOG.info("Starting financial operation");
 
         Account sender = accountService.getEntityById(dto.getSenderAccountId());
         Account receiver = accountService.getEntityById(dto.getReceiverAccountId());
@@ -202,7 +191,7 @@ public class FinancialOperationService {
         sender.setBalance(sender.getBalance().subtract(dto.getAmount()));
 
         if (dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            LOG.warn("Rejected operation with non-positive amount={}", dto.getAmount());
+            LOG.warn("Rejected operation with non-positive amount");
             throw new IllegalArgumentException("Incorrect amount");
         }
 

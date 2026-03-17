@@ -26,22 +26,22 @@ public class RoleService {
     }
 
     public RoleDto getById(Long id) {
-        LOG.debug("Fetching role by id={}", id);
+        LOG.debug("Fetching role by id");
         return mapper.toRoleDto(roleRepository.findById(id).orElseThrow());
     }
 
     public RoleDto getByName(String name) {
-        LOG.debug("Fetching role by name={}", name);
+        LOG.debug("Fetching role by name");
         return mapper.toRoleDto(roleRepository.findByName(name));
     }
 
     public RoleDto save(RoleDto role) {
-        LOG.info("Saving role name={}", role.getName());
+        LOG.info("Saving role");
         return mapper.toRoleDto(roleRepository.save(mapper.toRole(role)));
     }
 
     public void delete(Long id) {
-        LOG.info("Deleting role id={}", id);
+        LOG.info("Deleting role");
         roleRepository.deleteById(id);
     }
 
@@ -73,12 +73,12 @@ public class RoleService {
     }
     
     public Role getEntityById(Long id) {
-        LOG.debug("Fetching role entity by id={}", id);
+        LOG.debug("Fetching role entity by id");
         return roleRepository.findById(id).orElseThrow();
     }
 
     public Role getEntityByName(String name) {
-        LOG.debug("Fetching role entity by name={}", name);
+        LOG.debug("Fetching role entity by name");
         return roleRepository.findByName(name);
     }
 }

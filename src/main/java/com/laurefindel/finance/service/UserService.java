@@ -36,7 +36,7 @@ public class UserService {
     }
 
     public UserResponseDto getById(Long id) {
-        LOG.debug("Fetching user by id={}", id);
+        LOG.debug("Fetching user by id");
         return mapper
             .toUserResponseDto(repository.findById(id).orElseThrow());
     }
@@ -49,7 +49,7 @@ public class UserService {
     }
 
     public UserResponseDto getByFirstAndLastName(String firstName, String lastName) {
-        LOG.debug("Fetching user by firstName={} and lastName={}", firstName, lastName);
+        LOG.debug("Fetching user by first and last name");
         return mapper
             .toUserResponseDto(repository.findByFirstNameAndLastName(firstName, lastName)
             .stream()
@@ -58,25 +58,25 @@ public class UserService {
     }
 
     public UserResponseDto getByEmail(String email) {
-        LOG.debug("Fetching user by email={}", email);
+        LOG.debug("Fetching user by email");
         return mapper
             .toUserResponseDto(repository.findByEmail(email).orElseThrow());
     }
 
     public UserResponseDto save(UserRequestDto user) {
-        LOG.info("Creating user with email={}", user.getEmail());
+        LOG.info("Creating user");
         return mapper
             .toUserResponseDto(repository.save(mapper.toUser(user)));
     }
 
     public void delete(Long id) {
-        LOG.info("Deleting user id={}", id);
+        LOG.info("Deleting user");
         repository.deleteById(id);
     }
 
     @Transactional
     public UserResponseDto registerUser(UserRequestDto userDto) {
-        LOG.info("Registering user with email={}", userDto.getEmail());
+        LOG.info("Registering user");
         User user = mapper.toUser(userDto);
         user.setStatus("ACTIVE");
 
@@ -98,7 +98,7 @@ public class UserService {
     }
 
     public UserResponseDto patch(Long id, UserRequestDto dto) {
-        LOG.info("Patching user id={}", id);
+        LOG.info("Patching user");
         User user = repository.findById(id).orElseThrow();
 
         if (dto.getFirstName() != null) {

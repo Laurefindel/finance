@@ -35,15 +35,14 @@ public class AccountService {
     }
 
     public AccountResponseDto getById(Long id) {
-        LOG.debug("Fetching account by id={}", id);
+        LOG.debug("Fetching account by id");
         return mapper.toAccountResponseDto(accountRepository
             .findById(id)
             .orElseThrow());
     }
 
     public AccountResponseDto save(AccountRequestDto account) {
-        LOG.info("Creating account for userId={} and currencyId={}",
-            account.getUserId(), account.getCurrencyId());
+        LOG.info("Creating account");
         User user = userRepository.findById(account.getUserId()).orElseThrow();
         Account accountEntity = mapper.toAccount(account);
         Currency currency = currencyRepository.findById(account.getCurrencyId()).orElseThrow();
@@ -58,31 +57,28 @@ public class AccountService {
     }
 
     public void delete(Long id) {
-        LOG.info("Deleting account id={}", id);
+        LOG.info("Deleting account");
         accountRepository.deleteById(id);
     }
 
     public List<AccountResponseDto> getByUserId(Long userId) {
         List<AccountResponseDto> accounts = accountRepository.findByUserId(userId).stream()
             .map(mapper::toAccountResponseDto).toList();
-        LOG.debug("Fetched {} accounts by userId={}", accounts.size(), userId);
+        LOG.debug("Fetched accounts by user id, count={}", accounts.size());
         return accounts;
     }
 
     public List<AccountResponseDto> getByCurrency(Currency currency) {
-        String currencyCode = currency == null ? null : currency.getCode();
         List<AccountResponseDto> accounts = accountRepository.findByCurrency(currency).stream()
             .map(mapper::toAccountResponseDto).toList();
-        LOG.debug("Fetched {} accounts by currencyCode={}", accounts.size(), currencyCode);
+        LOG.debug("Fetched accounts by currency, count={}", accounts.size());
         return accounts;
     }
 
     public List<AccountResponseDto> getByUserIdAndCurrency(Long userId, Currency currency) {
-        String currencyCode = currency == null ? null : currency.getCode();
         List<AccountResponseDto> accounts = accountRepository.findByUserIdAndCurrency(userId, currency)
             .stream().map(mapper::toAccountResponseDto).toList();
-        LOG.debug("Fetched {} accounts by userId={} and currencyCode={}",
-            accounts.size(), userId, currencyCode);
+        LOG.debug("Fetched accounts by user id and currency, count={}", accounts.size());
         return accounts;
     }
 
@@ -94,12 +90,12 @@ public class AccountService {
     }
 
     public Account getEntityById(Long id) {
-        LOG.debug("Fetching account entity by id={}", id);
+        LOG.debug("Fetching account entity by id");
         return accountRepository.findById(id).orElseThrow();
     }
 
     public AccountResponseDto replenish(Long id, BigDecimal amount) {
-        LOG.info("Replenishing account id={} amount={}", id, amount);
+        LOG.info("Replenishing account");
         Account account = accountRepository.findById(id).orElseThrow();
         account.setBalance(account.getBalance().add(amount));
         Account savedAccount = accountRepository.save(account);
@@ -108,7 +104,7 @@ public class AccountService {
     }
 
     public Account save(Account account) {
-        LOG.debug("Saving account entity id={}", account.getId());
+        LOG.debug("Saving account entity");
         return accountRepository.save(account);
     }
 }
