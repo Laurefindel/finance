@@ -47,54 +47,69 @@ public class FinancialOperationService {
     }
 
     public List<FinancialOperationResponseDto> getAll() {
-        return repository.findAll()
+        List<FinancialOperationResponseDto> operations = repository.findAll()
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
+        LOG.debug("Fetched all operations count={}", operations.size());
+        return operations;
     }
 
     public FinancialOperationResponseDto getById(Long id) {
+        LOG.debug("Fetching operation by id={}", id);
         return mapper.toFinancialOperationResponseDto(repository.findById(id).orElseThrow());
     }
 
     public List<FinancialOperationResponseDto> getBySender(Long senderUserId) {
-        return repository.findBySenderAccount_User_Id(senderUserId)
+        List<FinancialOperationResponseDto> operations = repository.findBySenderAccount_User_Id(senderUserId)
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
+        LOG.debug("Fetched {} operations by senderUserId={}", operations.size(), senderUserId);
+        return operations;
     }
 
     public void delete(Long id) {
+        LOG.info("Deleting operation id={}", id);
         repository.deleteById(id);
         invalidateSearchIndex();
     }
 
     public List<FinancialOperationResponseDto> getByReceiver(Long receiverUserId) {
-        return repository.findByReceiverAccount_User_Id(receiverUserId)
+        List<FinancialOperationResponseDto> operations = repository.findByReceiverAccount_User_Id(receiverUserId)
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
+        LOG.debug("Fetched {} operations by receiverUserId={}", operations.size(), receiverUserId);
+        return operations;
     }
 
     public List<FinancialOperationResponseDto> getBySenderAccount(Long accountId) {
-        return repository.findBySenderAccountId(accountId)
+        List<FinancialOperationResponseDto> operations = repository.findBySenderAccountId(accountId)
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
+        LOG.debug("Fetched {} operations by senderAccountId={}", operations.size(), accountId);
+        return operations;
     }
 
     public List<FinancialOperationResponseDto> getByReceiverAccount(Long accountId) {
-        return repository.findByReceiverAccountId(accountId)
+        List<FinancialOperationResponseDto> operations = repository.findByReceiverAccountId(accountId)
             .stream()
             .map(mapper::toFinancialOperationResponseDto)
             .toList();
+        LOG.debug("Fetched {} operations by receiverAccountId={}", operations.size(), accountId);
+        return operations;
     }
 
     public List<FinancialOperationResponseDto> getByCurrency(Currency currency) {
-        return repository.findByCurrency(currency)
+        String currencyCode = currency == null ? null : currency.getCode();
+        List<FinancialOperationResponseDto> operations = repository.findByCurrency(currency)
                 .stream()
                 .map(mapper::toFinancialOperationResponseDto)
                 .toList();
+        LOG.debug("Fetched {} operations by currencyCode={}", operations.size(), currencyCode);
+        return operations;
     }
 
     public Page<FinancialOperationResponseDto> searchWithFilters(
@@ -102,6 +117,12 @@ public class FinancialOperationService {
         Pageable pageable,
         boolean useNativeQuery
     ) {
+        String queryType = useNativeQuery ? QUERY_TYPE_NATIVE : QUERY_TYPE_JPQL;
+        LOG.debug("Searching operations with queryType={} page={} size={}",
+            queryType,
+            pageable == null ? null : pageable.getPageNumber(),
+            pageable == null ? null : pageable.getPageSize());
+
         String normalizedCurrencyCode = criteria.getCurrencyCode() == null
             ? null
             : criteria.getCurrencyCode().trim().toUpperCase();
@@ -110,24 +131,31 @@ public class FinancialOperationService {
         }
         criteria.setCurrencyCode(normalizedCurrencyCode);
         Pageable effectivePageable = toEffectivePageable(pageable, useNativeQuery);
-        FinancialOperationSearchKey key = new FinancialOperationSearchKey(criteria, effectivePageable, useNativeQuery);
+        FinancialOperationSearchKey key = new FinancialOperationSearchKey(
+            criteria,
+            effectivePageable,
+            useNativeQuery
+        );
 
         Page<FinancialOperationResponseDto> cached = operationSearchIndex.get(key);
         if (cached != null) {
             LOG.debug("CACHE HIT: searchWithFilters key={} (queryType={})", 
-                key.hashCode(), useNativeQuery ? QUERY_TYPE_NATIVE : QUERY_TYPE_JPQL);
+                key.hashCode(), queryType);
             return cached;
         }
 
         LOG.debug("CACHE MISS: searchWithFilters key={} (queryType={})", 
-            key.hashCode(), useNativeQuery ? QUERY_TYPE_NATIVE : QUERY_TYPE_JPQL);
+            key.hashCode(), queryType);
 
         Page<FinancialOperation> operationsPage = useNativeQuery
             ? repository.searchWithFiltersNative(criteria, effectivePageable)
             : repository.searchWithFiltersJpql(criteria, effectivePageable);
 
-        Page<FinancialOperationResponseDto> resultPage = operationsPage.map(mapper::toFinancialOperationResponseDto);
+        Page<FinancialOperationResponseDto> resultPage = operationsPage
+            .map(mapper::toFinancialOperationResponseDto);
         operationSearchIndex.put(key, resultPage);
+        LOG.debug("Search completed totalElements={} totalPages={}",
+            resultPage.getTotalElements(), resultPage.getTotalPages());
         return resultPage;
     }
 
@@ -165,20 +193,32 @@ public class FinancialOperationService {
 
     @Transactional
     public FinancialOperationResponseDto doOperation(FinancialOperationRequestDto dto) {
+        LOG.info("Starting operation senderAccountId={} receiverAccountId={} amount={}",
+            dto.getSenderAccountId(), dto.getReceiverAccountId(), dto.getAmount());
+
         Account sender = accountService.getEntityById(dto.getSenderAccountId());
         Account receiver = accountService.getEntityById(dto.getReceiverAccountId());
 
         sender.setBalance(sender.getBalance().subtract(dto.getAmount()));
 
         if (dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            LOG.warn("Rejected operation with non-positive amount={}", dto.getAmount());
             throw new IllegalArgumentException("Incorrect amount");
         }
 
-        receiver.setBalance(receiver.getBalance().add(dto.getAmount()));
+        receiver.setBalance(
+            receiver.getBalance().add(dto.getAmount())
+        );
         Currency currency = sender.getCurrency();
-        FinancialOperation operation = mapper.toFinancialOperation(dto, sender, receiver, currency);
+        FinancialOperation operation = mapper.toFinancialOperation(
+            dto,
+            sender,
+            receiver,
+            currency
+        );
         repository.save(operation);
         invalidateSearchIndex();
+        LOG.info("Operation completed id={}", operation.getId());
         return mapper.toFinancialOperationResponseDto(operation);
     }
 

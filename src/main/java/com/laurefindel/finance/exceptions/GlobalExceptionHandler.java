@@ -10,6 +10,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -23,9 +25,11 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @ControllerAdvice
 public class GlobalExceptionHandler {
     private static final String VALIDATION_FAILED_MESSAGE = "Validation failed";
+    private static final Logger LOG = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler({NoSuchElementException.class, EmptyResultDataAccessException.class})
     public ResponseEntity<ErrorResponseDto> handleNotFound(Exception ex, HttpServletRequest request) {
+        LOG.warn("Not found error on path={} message={}", request.getRequestURI(), ex.getMessage());
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request, null);
     }
 
@@ -34,6 +38,7 @@ public class GlobalExceptionHandler {
         IllegalArgumentException ex,
         HttpServletRequest request
     ) {
+        LOG.warn("Illegal argument on path={} message={}", request.getRequestURI(), ex.getMessage());
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request, null);
     }
 
@@ -43,6 +48,7 @@ public class GlobalExceptionHandler {
         HttpServletRequest request
     ) {
         String message = ex.getMostSpecificCause().getMessage();
+        LOG.warn("Data integrity violation on path={} message={}", request.getRequestURI(), message);
         return buildErrorResponse(HttpStatus.CONFLICT, message, request, null);
     }
 
@@ -52,6 +58,7 @@ public class GlobalExceptionHandler {
         HttpServletRequest request
     ) {
         String message = "Invalid value for parameter '%s': %s".formatted(ex.getName(), ex.getValue());
+        LOG.warn("Type mismatch on path={} message={}", request.getRequestURI(), message);
         return buildErrorResponse(HttpStatus.BAD_REQUEST, message, request, null);
     }
 
@@ -64,6 +71,7 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getFieldErrors().forEach(error ->
             errors.put(error.getField(), error.getDefaultMessage())
         );
+        LOG.warn("Validation failed on path={} errors={}", request.getRequestURI(), errors);
         return buildErrorResponse(HttpStatus.BAD_REQUEST, VALIDATION_FAILED_MESSAGE, request, errors);
     }
 
@@ -73,6 +81,7 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getFieldErrors().forEach(error ->
             errors.put(error.getField(), error.getDefaultMessage())
         );
+        LOG.warn("Bind validation failed on path={} errors={}", request.getRequestURI(), errors);
         return buildErrorResponse(HttpStatus.BAD_REQUEST, VALIDATION_FAILED_MESSAGE, request, errors);
     }
 
@@ -85,7 +94,15 @@ public class GlobalExceptionHandler {
         ex.getConstraintViolations().forEach(violation ->
             errors.put(violation.getPropertyPath().toString(), violation.getMessage())
         );
+        LOG.warn("Constraint violation on path={} errors={}", request.getRequestURI(), errors);
         return buildErrorResponse(HttpStatus.BAD_REQUEST, VALIDATION_FAILED_MESSAGE, request, errors);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDto> handleUnexpectedException(Exception ex, HttpServletRequest request) {
+        LOG.error("Unexpected error on path={}", request.getRequestURI(), ex);
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+            "Unexpected server error", request, null);
     }
 
     private ResponseEntity<ErrorResponseDto> buildErrorResponse(
