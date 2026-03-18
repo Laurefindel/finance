@@ -12,6 +12,7 @@
 
 .vscode/
 target/
+./logs
 
 # Package Files #
 *.jar
