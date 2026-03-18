@@ -20,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,10 +48,10 @@ public class FinancialOperationController {
             : ResponseEntity.ok(service.getAll());
     } 
 
-    @GetMapping("/search")
+    @PostMapping("/search")
     @Operation(summary = "Search operations with filters and pagination")
     public ResponseEntity<Page<FinancialOperationResponseDto>> search(
-        @Valid @ModelAttribute FinancialOperationSearchCriteria criteria,
+        @Valid @RequestBody FinancialOperationSearchCriteria criteria,
         @RequestParam(defaultValue = "jpql") String queryType,
         @PageableDefault(size = 10, sort = "createdAt") Pageable pageable
     ) {
