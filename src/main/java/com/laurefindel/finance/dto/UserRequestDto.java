@@ -8,15 +8,19 @@ import jakarta.validation.constraints.NotBlank;
 @Schema(description = "Request payload for user registration and update")
 public class UserRequestDto {
 
+    @Schema(example = "Anna")
     @NotBlank(message = "First name cannot be blank")
     private String firstName;
     
+    @Schema(example = "Petrova")
     @NotBlank(message = "Last name cannot be blank")
     private String lastName;
 
+    @Schema(example = "anna.petrova@example.com")
     @Email(message = "Email should be valid")
     private String email;
 
+    @Schema(example = "StrongPass123")
     @NotBlank(message = "Password cannot be blank")
     private String password;    
 

@@ -3,6 +3,7 @@ package com.laurefindel.finance.controller;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.http.HttpStatus;
@@ -42,7 +43,9 @@ public class UserController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get user by id")
-    public ResponseEntity<UserResponseDto> getById(@PathVariable Long id) {
+    public ResponseEntity<UserResponseDto> getById(
+        @Parameter(description = "User id", example = "1") @PathVariable Long id
+    ) {
         return ResponseEntity.ok(service.getById(id));
     }
 
@@ -55,14 +58,17 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete user")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+        @Parameter(description = "User id", example = "1") @PathVariable Long id
+    ) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/change-user-information")
     @Operation(summary = "Update user information")
-    public ResponseEntity<UserResponseDto> changePassword(@PathVariable Long id, 
+    public ResponseEntity<UserResponseDto> changePassword(
+        @Parameter(description = "User id", example = "1") @PathVariable Long id,
         @Valid @RequestBody UserRequestDto dto) {
         return ResponseEntity.ok(service.patch(id, dto));
     }

@@ -3,6 +3,7 @@ package com.laurefindel.finance.controller;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.http.HttpStatus;
@@ -42,13 +43,17 @@ public class RoleController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get role by id")
-    public ResponseEntity<RoleDto> getById(@PathVariable Long id) {
+    public ResponseEntity<RoleDto> getById(
+        @Parameter(description = "Role id", example = "1") @PathVariable Long id
+    ) {
         return ResponseEntity.ok(roleService.getById(id));
     }
 
     @GetMapping("/by-name")
     @Operation(summary = "Get role by name")
-    public ResponseEntity<RoleDto> getByName(@RequestParam String name) {
+    public ResponseEntity<RoleDto> getByName(
+        @Parameter(description = "Role name", example = "User") @RequestParam String name
+    ) {
         return ResponseEntity.ok(roleService.getByName(name));
     }
 
@@ -61,7 +66,9 @@ public class RoleController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete role")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+        @Parameter(description = "Role id", example = "1") @PathVariable Long id
+    ) {
         roleService.delete(id);
         return ResponseEntity.noContent().build();
     }

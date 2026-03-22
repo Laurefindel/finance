@@ -8,10 +8,12 @@ import jakarta.validation.constraints.Positive;
 @Schema(description = "Request payload for account creation")
 public class AccountRequestDto {
 
+    @Schema(example = "1")
     @NotNull(message = "User ID cannot be null")
     @Positive
     private Long userId;
     
+    @Schema(example = "1")
     @NotNull(message = "Currency ID cannot be null")
     @Positive
     private Long currencyId;

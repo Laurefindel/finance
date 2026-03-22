@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.data.domain.Page;
@@ -41,8 +42,9 @@ public class FinancialOperationController {
     
     @GetMapping
     @Operation(summary = "Get operations or filter by sender user")
-    public ResponseEntity<List<FinancialOperationResponseDto>> getAll(@RequestParam(required = false) 
-        Long senderUserId) {
+    public ResponseEntity<List<FinancialOperationResponseDto>> getAll(
+        @Parameter(description = "Sender user id", example = "1")
+        @RequestParam(required = false) Long senderUserId) {
         return (senderUserId != null)
             ? ResponseEntity.ok(service.getBySender(senderUserId))
             : ResponseEntity.ok(service.getAll());
@@ -52,6 +54,7 @@ public class FinancialOperationController {
     @Operation(summary = "Search operations with filters and pagination")
     public ResponseEntity<Page<FinancialOperationResponseDto>> search(
         @Valid @RequestBody FinancialOperationSearchCriteria criteria,
+        @Parameter(description = "Query mode", example = "jpql")
         @RequestParam(defaultValue = "jpql") String queryType,
         @PageableDefault(size = 10, sort = "createdAt") Pageable pageable
     ) {
@@ -61,7 +64,9 @@ public class FinancialOperationController {
   
     @GetMapping("/{id}")
     @Operation(summary = "Get operation by id")
-    public ResponseEntity<FinancialOperationResponseDto> getById(@PathVariable Long id) {
+    public ResponseEntity<FinancialOperationResponseDto> getById(
+        @Parameter(description = "Operation id", example = "1") @PathVariable Long id
+    ) {
         return ResponseEntity.ok(service.getById(id));
     } 
   
@@ -74,7 +79,9 @@ public class FinancialOperationController {
   
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete financial operation")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+        @Parameter(description = "Operation id", example = "1") @PathVariable Long id
+    ) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }

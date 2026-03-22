@@ -7,12 +7,25 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "User response payload")
 public class UserResponseDto {
+    @Schema(example = "1")
     private Long id;
+
+    @Schema(example = "Anna")
     private String firstName;
+
+    @Schema(example = "Petrova")
     private String lastName;
+
+    @Schema(example = "anna.petrova@example.com")
     private String email;
+
+    @Schema(example = "ACTIVE")
     private String status;
+
+    @Schema(example = "[1, 2]")
     private List<Long> accountsIds;
+
+    @Schema(example = "[1]")
     private Set<Long> roleIds;
 
     public Long getId() {

@@ -3,6 +3,7 @@ package com.laurefindel.finance.controller;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.http.HttpStatus;
@@ -47,19 +48,25 @@ public class CurrencyController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get currency by id")
-    public ResponseEntity<CurrencyResponseDto> getById(@PathVariable Long id) {
+    public ResponseEntity<CurrencyResponseDto> getById(
+        @Parameter(description = "Currency id", example = "1") @PathVariable Long id
+    ) {
         return ResponseEntity.ok(currencyService.getById(id));
     }
 
     @GetMapping("/by-code")
     @Operation(summary = "Get currency by code")
-    public ResponseEntity<CurrencyResponseDto> getByCode(@RequestParam String code) {
+    public ResponseEntity<CurrencyResponseDto> getByCode(
+        @Parameter(description = "Currency code", example = "USD") @RequestParam String code
+    ) {
         return ResponseEntity.ok(currencyService.getByCode(code));
     }
 
     @GetMapping("/by-name")
     @Operation(summary = "Get currencies by name")
-    public ResponseEntity<List<CurrencyResponseDto>> getByName(@RequestParam String name) {
+    public ResponseEntity<List<CurrencyResponseDto>> getByName(
+        @Parameter(description = "Currency name", example = "US Dollar") @RequestParam String name
+    ) {
         return ResponseEntity.ok(currencyService.getByName(name));
     }
 
@@ -72,21 +79,25 @@ public class CurrencyController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete currency")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+        @Parameter(description = "Currency id", example = "1") @PathVariable Long id
+    ) {
         currencyService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Replace currency")
-    public ResponseEntity<CurrencyResponseDto> putCurrency(@PathVariable Long id, 
+    public ResponseEntity<CurrencyResponseDto> putCurrency(
+        @Parameter(description = "Currency id", example = "1") @PathVariable Long id,
         @Valid @RequestBody CurrencyRequestDto dto) {
         return ResponseEntity.ok(currencyService.update(id, dto));
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Update currency partially")
-    public ResponseEntity<CurrencyResponseDto> patchCurrency(@PathVariable Long id, 
+    public ResponseEntity<CurrencyResponseDto> patchCurrency(
+        @Parameter(description = "Currency id", example = "1") @PathVariable Long id,
         @Valid @RequestBody CurrencyRequestDto dto) {
         return ResponseEntity.ok(currencyService.patch(id, dto));
     }

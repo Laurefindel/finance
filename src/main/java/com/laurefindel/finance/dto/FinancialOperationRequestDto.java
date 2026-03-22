@@ -12,18 +12,22 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Request payload for creating financial operation")
 public class FinancialOperationRequestDto {
 
+    @Schema(example = "1")
     @NotNull(message = "Sender account ID cannot be null")
     @Positive
     private Long senderAccountId;
 
+    @Schema(example = "2")
     @NotNull(message = "Receiver account ID cannot be null")
     @Positive
     private Long receiverAccountId;
 
+    @Schema(example = "150.75")
     @NotNull(message = "Amount cannot be null")
     @DecimalMin(value = "0", message = "Amount must be positive")
     private BigDecimal amount;
 
+    @Schema(example = "Transfer for lunch")
     @Size(max = 255, message = "Description cannot be longer than 255 characters")
     private String description;
   

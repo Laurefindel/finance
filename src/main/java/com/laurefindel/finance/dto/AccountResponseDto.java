@@ -8,11 +8,22 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Account response payload")
 public class AccountResponseDto {
 
+    @Schema(example = "1")
     private Long id;
+
+    @Schema(example = "1200.50")
     private BigDecimal balance;
+
+    @Schema(description = "Account owner")
     private UserResponseDto user;  
+
+    @Schema(description = "Account currency")
     private CurrencyResponseDto currency;
+
+    @Schema(description = "Outgoing operations")
     private List<FinancialOperationResponseDto> outcomingOperations;
+
+    @Schema(description = "Incoming operations")
     private List<FinancialOperationResponseDto> incomingOperations;
 
 

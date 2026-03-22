@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.http.HttpStatus;
@@ -45,14 +46,17 @@ public class AccountController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get account by id")
-    public ResponseEntity<AccountResponseDto> getById(@PathVariable Long id) {
+    public ResponseEntity<AccountResponseDto> getById(
+            @Parameter(description = "Account id", example = "1") @PathVariable Long id) {
         return ResponseEntity.ok(accountService.getById(id));
     }
 
     @GetMapping
     @Operation(summary = "Get accounts with optional filters by user or currency")
     public ResponseEntity<List<AccountResponseDto>> getAccounts(
+            @Parameter(description = "User id", example = "1")
             @RequestParam(required = false) Long userId,
+            @Parameter(description = "Currency code", example = "USD")
             @RequestParam(required = false) String currency) {
 
         if (userId != null && currency != null) {
@@ -81,14 +85,17 @@ public class AccountController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete account")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "Account id", example = "1") @PathVariable Long id) {
         accountService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/replenish/{amount}")
     @Operation(summary = "Replenish account balance")
-    public ResponseEntity<AccountResponseDto> replenish(@PathVariable Long id, @PathVariable BigDecimal amount) {
+    public ResponseEntity<AccountResponseDto> replenish(
+            @Parameter(description = "Account id", example = "1") @PathVariable Long id,
+            @Parameter(description = "Replenish amount", example = "100.00") @PathVariable BigDecimal amount) {
         return ResponseEntity.ok(accountService.replenish(id, amount));
     }
 }

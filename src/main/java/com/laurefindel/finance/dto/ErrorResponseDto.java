@@ -7,11 +7,22 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Standard API error response")
 public class ErrorResponseDto {
+    @Schema(example = "2026-03-22T19:15:30")
     private LocalDateTime timestamp;
+
+    @Schema(example = "400")
     private int status;
+
+    @Schema(example = "Bad Request")
     private String error;
+
+    @Schema(example = "Validation failed")
     private String message;
+
+    @Schema(example = "/currencies")
     private String path;
+
+    @Schema(example = "{\"code\":\"Currency code must be exactly 3 characters\"}")
     private Map<String, String> validationErrors;
 
     public ErrorResponseDto(LocalDateTime timestamp,
