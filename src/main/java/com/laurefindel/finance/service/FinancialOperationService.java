@@ -187,19 +187,21 @@ public class FinancialOperationService {
     public FinancialOperationResponseDto doOperation(FinancialOperationRequestDto dto) {
         LOG.info("Starting financial operation");
 
-        Account sender = accountService.getEntityById(dto.getSenderAccountId());
-        Account receiver = accountService.getEntityById(dto.getReceiverAccountId());
-
-        sender.setBalance(sender.getBalance().subtract(dto.getAmount()));
-
         if (dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             LOG.warn("Rejected operation with non-positive amount");
             throw new IllegalArgumentException("Incorrect amount");
         }
 
+        Account sender = accountService.getEntityById(dto.getSenderAccountId());
+        Account receiver = accountService.getEntityById(dto.getReceiverAccountId());
+
+        sender.setBalance(sender.getBalance().subtract(dto.getAmount()));
+
         receiver.setBalance(
             receiver.getBalance().add(dto.getAmount())
         );
+        accountService.save(sender);
+        accountService.save(receiver);
         Currency currency = sender.getCurrency();
         FinancialOperation operation = mapper.toFinancialOperation(
             dto,

@@ -88,7 +88,7 @@ public class FinancialOperationController {
     @PostMapping("/bulk/non-transactional")
     @Operation(summary = "Create bulk financial operations without transaction")
     public ResponseEntity<List<FinancialOperationResponseDto>> createBulkWithoutTransaction(
-        @RequestBody List<@Valid FinancialOperationRequestDto> operations
+        @RequestBody List<FinancialOperationRequestDto> operations
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(service.doBulkOperationWithoutTransaction(operations));
