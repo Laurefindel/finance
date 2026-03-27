@@ -76,6 +76,23 @@ public class FinancialOperationController {
         FinancialOperationResponseDto operation = service.doOperation(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(operation);
     }  
+
+    @PostMapping("/bulk")
+    @Operation(summary = "Create bulk financial operations")
+    public ResponseEntity<List<FinancialOperationResponseDto>> createBulk(
+        @RequestBody List<@Valid FinancialOperationRequestDto> operations
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.doBulkOperation(operations));
+    }
+
+    @PostMapping("/bulk/non-transactional")
+    @Operation(summary = "Create bulk financial operations without transaction")
+    public ResponseEntity<List<FinancialOperationResponseDto>> createBulkWithoutTransaction(
+        @RequestBody List<@Valid FinancialOperationRequestDto> operations
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(service.doBulkOperationWithoutTransaction(operations));
+    }
   
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete financial operation")

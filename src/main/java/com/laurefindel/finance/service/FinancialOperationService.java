@@ -23,6 +23,8 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class FinancialOperationService {
@@ -209,6 +211,43 @@ public class FinancialOperationService {
         invalidateSearchIndex();
         LOG.info("Operation completed id={}", operation.getId());
         return mapper.toFinancialOperationResponseDto(operation);
+    }
+
+    @Transactional
+    public List<FinancialOperationResponseDto> doBulkOperation(List<FinancialOperationRequestDto> operations) {
+        List<FinancialOperationRequestDto> safeOperations = Optional.ofNullable(operations)
+            .filter(list -> !list.isEmpty())
+            .orElseThrow(() -> new IllegalArgumentException("Operations list cannot be empty"));
+
+        LOG.info("Starting bulk financial operation size={}", safeOperations.size());
+        List<FinancialOperationResponseDto> result = safeOperations.stream()
+            .map(this::doOperation)
+            .toList();
+        LOG.info("Bulk financial operation completed size={}", result.size());
+        return result;
+    }
+
+    public List<FinancialOperationResponseDto> doBulkOperationWithoutTransaction(
+        List<FinancialOperationRequestDto> operations
+    ) {
+        List<FinancialOperationRequestDto> safeOperations = Optional.ofNullable(operations)
+            .filter(list -> !list.isEmpty())
+            .orElseThrow(() -> new IllegalArgumentException("Operations list cannot be empty"));
+
+        LOG.info("Starting bulk financial operation WITHOUT transaction size={}", safeOperations.size());
+        List<FinancialOperationResponseDto> result = safeOperations.stream()
+            .map(dto -> {
+                try {
+                    return doOperation(dto);
+                } catch (RuntimeException ex) {
+                    LOG.warn("Skipping failed operation in non-transactional bulk: {}", ex.getMessage());
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .toList();
+        LOG.info("Bulk financial operation WITHOUT transaction completed size={}", result.size());
+        return result;
     }
 
     public void invalidateSearchIndex() {
