@@ -13,9 +13,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -80,5 +82,79 @@ class RoleServiceTest {
 
         assertEquals(1, result.size());
         assertEquals(roleDto, result.get(0));
+    }
+
+    @Test
+    void getById_shouldReturnMappedRole() {
+        Role role = new Role();
+        RoleDto roleDto = new RoleDto();
+
+        when(roleRepository.findById(1L)).thenReturn(java.util.Optional.of(role));
+        when(mapper.toRoleDto(role)).thenReturn(roleDto);
+
+        RoleDto result = service.getById(1L);
+
+        assertEquals(roleDto, result);
+    }
+
+    @Test
+    void getByName_shouldReturnMappedRole() {
+        Role role = new Role();
+        RoleDto roleDto = new RoleDto();
+
+        when(roleRepository.findByName("User")).thenReturn(role);
+        when(mapper.toRoleDto(role)).thenReturn(roleDto);
+
+        RoleDto result = service.getByName("User");
+
+        assertEquals(roleDto, result);
+    }
+
+    @Test
+    void getAll_shouldReturnMappedRoles() {
+        Role role = new Role();
+        RoleDto roleDto = new RoleDto();
+
+        when(roleRepository.findAll()).thenReturn(List.of(role));
+        when(mapper.toRoleDto(role)).thenReturn(roleDto);
+
+        List<RoleDto> result = service.getAll();
+
+        assertEquals(1, result.size());
+        assertEquals(roleDto, result.get(0));
+    }
+
+    @Test
+    void getEntityById_shouldReturnEntity() {
+        Role role = new Role();
+        when(roleRepository.findById(3L)).thenReturn(java.util.Optional.of(role));
+
+        Role result = service.getEntityById(3L);
+
+        assertEquals(role, result);
+    }
+
+    @Test
+    void getEntityByName_shouldReturnEntity() {
+        Role role = new Role();
+        when(roleRepository.findByName("Admin")).thenReturn(role);
+
+        Role result = service.getEntityByName("Admin");
+
+        assertEquals(role, result);
+    }
+
+    @Test
+    void getById_shouldThrowWhenNotFound() {
+        when(roleRepository.findById(707L)).thenReturn(java.util.Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> service.getById(707L));
+    }
+
+    @Test
+    void getEntityById_shouldThrowWhenNotFound() {
+        when(roleRepository.findById(808L)).thenReturn(java.util.Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> service.getEntityById(808L));
     }
 }

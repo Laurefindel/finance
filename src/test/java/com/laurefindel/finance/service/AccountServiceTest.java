@@ -19,9 +19,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -115,5 +117,127 @@ class AccountServiceTest {
 
         assertEquals(account, result);
         verify(accountRepository).save(account);
+    }
+
+    @Test
+    void getById_shouldReturnMappedAccount() {
+        Account account = new Account();
+        AccountResponseDto response = new AccountResponseDto();
+
+        when(accountRepository.findById(2L)).thenReturn(Optional.of(account));
+        when(mapper.toAccountResponseDto(account)).thenReturn(response);
+
+        AccountResponseDto result = service.getById(2L);
+
+        assertEquals(response, result);
+    }
+
+    @Test
+    void delete_shouldDelegateToRepository() {
+        service.delete(3L);
+        verify(accountRepository).deleteById(3L);
+    }
+
+    @Test
+    void getByUserId_shouldMapFilteredAccounts() {
+        Account account = new Account();
+        AccountResponseDto response = new AccountResponseDto();
+
+        when(accountRepository.findByUserId(11L)).thenReturn(List.of(account));
+        when(mapper.toAccountResponseDto(account)).thenReturn(response);
+
+        List<AccountResponseDto> result = service.getByUserId(11L);
+
+        assertEquals(1, result.size());
+        assertEquals(response, result.get(0));
+    }
+
+    @Test
+    void getByCurrency_shouldMapFilteredAccounts() {
+        Currency currency = new Currency();
+        Account account = new Account();
+        AccountResponseDto response = new AccountResponseDto();
+
+        when(accountRepository.findByCurrency(currency)).thenReturn(List.of(account));
+        when(mapper.toAccountResponseDto(account)).thenReturn(response);
+
+        List<AccountResponseDto> result = service.getByCurrency(currency);
+
+        assertEquals(1, result.size());
+        assertEquals(response, result.get(0));
+    }
+
+    @Test
+    void getByUserIdAndCurrency_shouldMapFilteredAccounts() {
+        Currency currency = new Currency();
+        Account account = new Account();
+        AccountResponseDto response = new AccountResponseDto();
+
+        when(accountRepository.findByUserIdAndCurrency(5L, currency)).thenReturn(List.of(account));
+        when(mapper.toAccountResponseDto(account)).thenReturn(response);
+
+        List<AccountResponseDto> result = service.getByUserIdAndCurrency(5L, currency);
+
+        assertEquals(1, result.size());
+        assertEquals(response, result.get(0));
+    }
+
+    @Test
+    void getEntityById_shouldReturnEntity() {
+        Account account = new Account();
+        when(accountRepository.findById(9L)).thenReturn(Optional.of(account));
+
+        Account result = service.getEntityById(9L);
+
+        assertEquals(account, result);
+    }
+
+    @Test
+    void getById_shouldThrowWhenNotFound() {
+        when(accountRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> service.getById(404L));
+    }
+
+    @Test
+    void getEntityById_shouldThrowWhenNotFound() {
+        when(accountRepository.findById(505L)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> service.getEntityById(505L));
+    }
+
+    @Test
+    void save_shouldThrowWhenUserNotFound() {
+        AccountRequestDto request = new AccountRequestDto();
+        request.setUserId(99L);
+        request.setCurrencyId(1L);
+
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> service.save(request));
+    }
+
+    @Test
+    void save_shouldThrowWhenCurrencyNotFound() {
+        AccountRequestDto request = new AccountRequestDto();
+        request.setUserId(10L);
+        request.setCurrencyId(77L);
+
+        User user = new User();
+        user.setAccounts(new ArrayList<>());
+
+        when(userRepository.findById(10L)).thenReturn(Optional.of(user));
+        when(currencyRepository.findById(77L)).thenReturn(Optional.empty());
+        when(mapper.toAccount(request)).thenReturn(new Account());
+
+        assertThrows(NoSuchElementException.class, () -> service.save(request));
+    }
+
+    @Test
+    void replenish_shouldThrowWhenAccountNotFound() {
+        when(accountRepository.findById(606L)).thenReturn(Optional.empty());
+        BigDecimal amount = new BigDecimal("5.00");
+
+        assertThrows(NoSuchElementException.class, () -> service.replenish(606L, amount));
     }
 }
