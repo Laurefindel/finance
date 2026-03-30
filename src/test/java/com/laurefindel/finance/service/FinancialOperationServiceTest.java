@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -351,6 +352,13 @@ class FinancialOperationServiceTest {
     }
 
     @Test
+    void doBulkOperationWithoutTransaction_shouldThrowForEmptyList() {
+        List<FinancialOperationRequestDto> operations = List.of();
+        assertThrows(IllegalArgumentException.class,
+            () -> service.doBulkOperationWithoutTransaction(operations));
+    }
+
+    @Test
     void searchWithFilters_shouldUseCreatedAtForNativeSortAlias() {
         FinancialOperationSearchCriteria criteria = new FinancialOperationSearchCriteria();
         Pageable pageable = PageRequest.of(0, 5, Sort.by("createdAt"));
@@ -391,6 +399,57 @@ class FinancialOperationServiceTest {
         service.searchWithFilters(criteria, pageable, false);
 
         assertNull(criteria.getCurrencyCode());
+    }
+
+    @Test
+    void searchWithFilters_shouldKeepUnsortedPageableAsIs() {
+        FinancialOperationSearchCriteria criteria = new FinancialOperationSearchCriteria();
+        Pageable pageable = PageRequest.of(0, 5, Sort.unsorted());
+        when(repository.searchWithFiltersJpql(eq(criteria), any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+
+        service.searchWithFilters(criteria, pageable, false);
+
+        verify(repository).searchWithFiltersJpql(criteria, pageable);
+    }
+
+    @Test
+    void searchWithFilters_shouldFallbackToCreatedAtForUnsupportedJpqlSort() {
+        FinancialOperationSearchCriteria criteria = new FinancialOperationSearchCriteria();
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("unsupported"));
+        Page<FinancialOperation> operationPage = new PageImpl<>(List.of());
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        when(repository.searchWithFiltersJpql(eq(criteria), any(Pageable.class))).thenReturn(operationPage);
+
+        service.searchWithFilters(criteria, pageable, false);
+
+        verify(repository).searchWithFiltersJpql(eq(criteria), pageableCaptor.capture());
+        Sort.Order order = pageableCaptor.getValue().getSort().iterator().next();
+        assertEquals("createdAt", order.getProperty());
+    }
+
+    @Test
+    void normalizeSortProperty_shouldFallbackWhenPropertyIsNull() throws Exception {
+        Method method = FinancialOperationService.class
+            .getDeclaredMethod("normalizeSortProperty", String.class, boolean.class);
+        method.setAccessible(true);
+
+        String jpqlProperty = (String) method.invoke(service, null, false);
+        String nativeProperty = (String) method.invoke(service, null, true);
+
+        assertEquals("createdAt", jpqlProperty);
+        assertEquals("created_at", nativeProperty);
+    }
+
+    @Test
+    void toEffectivePageable_shouldReturnNullWhenPageableIsNull() throws Exception {
+        Method method = FinancialOperationService.class
+            .getDeclaredMethod("toEffectivePageable", Pageable.class, boolean.class);
+        method.setAccessible(true);
+
+        Pageable result = (Pageable) method.invoke(service, null, false);
+
+        assertNull(result);
     }
 
     private FinancialOperationRequestDto request(Long senderId, Long receiverId, String amount) {

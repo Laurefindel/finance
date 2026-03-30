@@ -1,4 +1,4 @@
-package com.laurefindel.finance.service;
+package com.laurefindel.finance.search;
 
 import com.laurefindel.finance.dto.FinancialOperationSearchCriteria;
 import java.math.BigDecimal;

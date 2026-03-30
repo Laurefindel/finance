@@ -8,6 +8,7 @@ import com.laurefindel.finance.model.entity.Account;
 import com.laurefindel.finance.model.entity.Currency;
 import com.laurefindel.finance.model.entity.FinancialOperation;
 import com.laurefindel.finance.repository.FinancialOperationRepository;
+import com.laurefindel.finance.search.FinancialOperationSearchKey;
 
 import jakarta.transaction.Transactional;
 

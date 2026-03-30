@@ -231,4 +231,28 @@ class UserServiceTest {
 
         assertThrows(NoSuchElementException.class, () -> service.patch(505L, patch));
     }
+
+    @Test
+    void patch_shouldKeepAllFieldsWhenDtoHasOnlyNulls() {
+        User existing = new User();
+        existing.setFirstName("Stable");
+        existing.setLastName("User");
+        existing.setEmail("stable@mail.com");
+        existing.setPassword("stable-pass");
+
+        UserRequestDto patch = new UserRequestDto();
+        UserResponseDto response = new UserResponseDto();
+
+        when(repository.findById(33L)).thenReturn(Optional.of(existing));
+        when(repository.save(existing)).thenReturn(existing);
+        when(mapper.toUserResponseDto(existing)).thenReturn(response);
+
+        UserResponseDto result = service.patch(33L, patch);
+
+        assertEquals("Stable", existing.getFirstName());
+        assertEquals("User", existing.getLastName());
+        assertEquals("stable@mail.com", existing.getEmail());
+        assertEquals("stable-pass", existing.getPassword());
+        assertEquals(response, result);
+    }
 }
