@@ -3,6 +3,7 @@ package com.laurefindel.finance.service;
 import com.laurefindel.finance.dto.FinancialOperationRequestDto;
 import com.laurefindel.finance.dto.FinancialOperationResponseDto;
 import com.laurefindel.finance.dto.FinancialOperationSearchCriteria;
+import com.laurefindel.finance.exceptions.PartialBulkOperationException;
 import com.laurefindel.finance.mapper.FinancialOperationMapper;
 import com.laurefindel.finance.model.entity.Account;
 import com.laurefindel.finance.model.entity.Currency;
@@ -147,7 +148,7 @@ class FinancialOperationServiceTest {
     }
 
     @Test
-    void doBulkOperationWithoutTransaction_shouldSkipFailedItemsAndContinue() {
+    void doBulkOperationWithoutTransaction_shouldPartiallySaveAndThrowDetailedException() {
         FinancialOperationRequestDto ok = request(1L, 2L, "10.00");
         FinancialOperationRequestDto broken = request(1L, 99L, "10.00");
 
@@ -169,10 +170,15 @@ class FinancialOperationServiceTest {
         when(repository.save(operation)).thenReturn(operation);
         when(mapper.toFinancialOperationResponseDto(operation)).thenReturn(mapped);
 
-        List<FinancialOperationResponseDto> result = service.doBulkOperationWithoutTransaction(List.of(ok, broken));
+        PartialBulkOperationException ex = assertThrows(
+            PartialBulkOperationException.class,
+            () -> service.doBulkOperationWithoutTransaction(List.of(ok, broken))
+        );
 
-        assertEquals(1, result.size());
-        assertTrue(result.contains(mapped));
+        assertEquals(1, ex.getSavedCount());
+        assertEquals(1, ex.getFailedCount());
+        assertEquals("Account not found", ex.getFailedOperations().get("operation_2"));
+        verify(repository, times(1)).save(operation);
     }
 
     @Test

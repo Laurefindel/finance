@@ -42,6 +42,19 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request, null);
     }
 
+    @ExceptionHandler(PartialBulkOperationException.class)
+    public ResponseEntity<ErrorResponseDto> handlePartialBulkOperation(
+        PartialBulkOperationException ex,
+        HttpServletRequest request
+    ) {
+        Map<String, String> details = new LinkedHashMap<>();
+        details.put("saved", String.valueOf(ex.getSavedCount()));
+        details.put("failed", String.valueOf(ex.getFailedCount()));
+        details.putAll(ex.getFailedOperations());
+        LOG.warn("Partial bulk operation failure on path={} details={}", request.getRequestURI(), details);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request, details);
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponseDto> handleDataIntegrityViolation(
         DataIntegrityViolationException ex,

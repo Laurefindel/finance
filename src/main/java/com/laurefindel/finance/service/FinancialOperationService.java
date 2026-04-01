@@ -3,6 +3,7 @@ package com.laurefindel.finance.service;
 import com.laurefindel.finance.dto.FinancialOperationRequestDto;
 import com.laurefindel.finance.dto.FinancialOperationResponseDto;
 import com.laurefindel.finance.dto.FinancialOperationSearchCriteria;
+import com.laurefindel.finance.exceptions.PartialBulkOperationException;
 import com.laurefindel.finance.mapper.FinancialOperationMapper;
 import com.laurefindel.finance.model.entity.Account;
 import com.laurefindel.finance.model.entity.Currency;
@@ -21,10 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -238,17 +240,30 @@ public class FinancialOperationService {
             .orElseThrow(() -> new IllegalArgumentException("Operations list cannot be empty"));
 
         LOG.info("Starting bulk financial operation WITHOUT transaction size={}", safeOperations.size());
-        List<FinancialOperationResponseDto> result = safeOperations.stream()
-            .map(dto -> {
-                try {
-                    return doOperation(dto);
-                } catch (RuntimeException ex) {
-                    LOG.warn("Skipping failed operation in non-transactional bulk: {}", ex.getMessage());
-                    return null;
-                }
-            })
-            .filter(Objects::nonNull)
-            .toList();
+        List<FinancialOperationResponseDto> result = new ArrayList<>();
+        Map<String, String> failedOperations = new LinkedHashMap<>();
+
+        for (int index = 0; index < safeOperations.size(); index++) {
+            FinancialOperationRequestDto dto = safeOperations.get(index);
+            try {
+                result.add(doOperation(dto));
+            } catch (RuntimeException ex) {
+                String operationKey = "operation_%d".formatted(index + 1);
+                String failureMessage = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+                failedOperations.put(operationKey, failureMessage);
+                LOG.warn("Skipping failed operation in non-transactional bulk {}: {}", operationKey, failureMessage);
+            }
+        }
+
+        if (!failedOperations.isEmpty()) {
+            throw new PartialBulkOperationException(
+                "Some operations were not saved",
+                result.size(),
+                failedOperations.size(),
+                failedOperations
+            );
+        }
+
         LOG.info("Bulk financial operation WITHOUT transaction completed size={}", result.size());
         return result;
     }
