@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -93,7 +94,7 @@ class CurrencyServiceTest {
         when(currencyRepository.findById(7L)).thenReturn(Optional.of(entity));
         when(mapper.toCurrencyResponseDto(entity)).thenReturn(response);
 
-        CurrencyResponseDto result = service.getById(7L);
+        CurrencyResponseDto result = service.getById(7L).orElseThrow();
 
         assertEquals(response, result);
     }
@@ -106,7 +107,7 @@ class CurrencyServiceTest {
         when(currencyRepository.findByCode("USD")).thenReturn(entity);
         when(mapper.toCurrencyResponseDto(entity)).thenReturn(response);
 
-        CurrencyResponseDto result = service.getByCode("USD");
+        CurrencyResponseDto result = service.getByCode("USD").orElseThrow();
 
         assertEquals(response, result);
     }
@@ -136,7 +137,7 @@ class CurrencyServiceTest {
         Currency entity = new Currency();
         when(currencyRepository.findByCode("EUR")).thenReturn(entity);
 
-        Currency result = service.getEntityByCode("EUR");
+        Currency result = service.getEntityByCode("EUR").orElseThrow();
 
         assertEquals(entity, result);
     }
@@ -189,7 +190,7 @@ class CurrencyServiceTest {
     void getById_shouldThrowWhenNotFound() {
         when(currencyRepository.findById(404L)).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> service.getById(404L));
+        assertTrue(service.getById(404L).isEmpty());
     }
 
     @Test

@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -127,7 +128,7 @@ class AccountServiceTest {
         when(accountRepository.findById(2L)).thenReturn(Optional.of(account));
         when(mapper.toAccountResponseDto(account)).thenReturn(response);
 
-        AccountResponseDto result = service.getById(2L);
+        AccountResponseDto result = service.getById(2L).orElseThrow();
 
         assertEquals(response, result);
     }
@@ -187,7 +188,7 @@ class AccountServiceTest {
         Account account = new Account();
         when(accountRepository.findById(9L)).thenReturn(Optional.of(account));
 
-        Account result = service.getEntityById(9L);
+        Account result = service.getEntityById(9L).orElseThrow();
 
         assertEquals(account, result);
     }
@@ -196,14 +197,14 @@ class AccountServiceTest {
     void getById_shouldThrowWhenNotFound() {
         when(accountRepository.findById(404L)).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> service.getById(404L));
+        assertTrue(service.getById(404L).isEmpty());
     }
 
     @Test
     void getEntityById_shouldThrowWhenNotFound() {
         when(accountRepository.findById(505L)).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> service.getEntityById(505L));
+        assertTrue(service.getEntityById(505L).isEmpty());
     }
 
     @Test

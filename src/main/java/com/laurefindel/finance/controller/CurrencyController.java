@@ -51,7 +51,7 @@ public class CurrencyController {
     public ResponseEntity<CurrencyResponseDto> getById(
         @Parameter(description = "Currency id", example = "1") @PathVariable Long id
     ) {
-        return ResponseEntity.ok(currencyService.getById(id));
+        return ResponseEntity.ok(currencyService.getById(id).orElseThrow());
     }
 
     @GetMapping("/by-code")
@@ -59,7 +59,7 @@ public class CurrencyController {
     public ResponseEntity<CurrencyResponseDto> getByCode(
         @Parameter(description = "Currency code", example = "USD") @RequestParam String code
     ) {
-        return ResponseEntity.ok(currencyService.getByCode(code));
+        return ResponseEntity.ok(currencyService.getByCode(code).orElseThrow());
     }
 
     @GetMapping("/by-name")

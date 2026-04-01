@@ -24,7 +24,6 @@ import org.springframework.data.domain.Sort;
 import java.math.BigDecimal;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,8 +68,8 @@ class FinancialOperationServiceTest {
         FinancialOperationResponseDto response = new FinancialOperationResponseDto();
         response.setId(20L);
 
-        when(accountService.getEntityById(1L)).thenReturn(sender);
-        when(accountService.getEntityById(2L)).thenReturn(receiver);
+        when(accountService.getEntityById(1L)).thenReturn(Optional.of(sender));
+        when(accountService.getEntityById(2L)).thenReturn(Optional.of(receiver));
         when(mapper.toFinancialOperation(request, sender, receiver, currency)).thenReturn(operation);
         when(repository.save(operation)).thenReturn(operation);
         when(mapper.toFinancialOperationResponseDto(operation)).thenReturn(response);
@@ -100,8 +99,8 @@ class FinancialOperationServiceTest {
         FinancialOperation operation = new FinancialOperation();
         FinancialOperationResponseDto mapped = new FinancialOperationResponseDto();
 
-        when(accountService.getEntityById(1L)).thenReturn(sender);
-        when(accountService.getEntityById(2L)).thenReturn(receiver);
+        when(accountService.getEntityById(1L)).thenReturn(Optional.of(sender));
+        when(accountService.getEntityById(2L)).thenReturn(Optional.of(receiver));
         when(mapper.toFinancialOperation(any(FinancialOperationRequestDto.class), any(Account.class),
             any(Account.class), any(Currency.class))).thenReturn(operation);
         when(repository.save(operation)).thenReturn(operation);
@@ -135,8 +134,8 @@ class FinancialOperationServiceTest {
         FinancialOperation operation = new FinancialOperation();
         FinancialOperationResponseDto mapped = new FinancialOperationResponseDto();
 
-        when(accountService.getEntityById(1L)).thenReturn(sender);
-        when(accountService.getEntityById(2L)).thenReturn(receiver);
+        when(accountService.getEntityById(1L)).thenReturn(Optional.of(sender));
+        when(accountService.getEntityById(2L)).thenReturn(Optional.of(receiver));
         when(accountService.getEntityById(99L)).thenThrow(new IllegalArgumentException("Account not found"));
         when(mapper.toFinancialOperation(any(FinancialOperationRequestDto.class), any(Account.class),
             any(Account.class), any(Currency.class))).thenReturn(operation);
@@ -162,8 +161,8 @@ class FinancialOperationServiceTest {
         FinancialOperation operation = new FinancialOperation();
         FinancialOperationResponseDto mapped = new FinancialOperationResponseDto();
 
-        when(accountService.getEntityById(1L)).thenReturn(sender);
-        when(accountService.getEntityById(2L)).thenReturn(receiver);
+        when(accountService.getEntityById(1L)).thenReturn(Optional.of(sender));
+        when(accountService.getEntityById(2L)).thenReturn(Optional.of(receiver));
         when(accountService.getEntityById(99L)).thenThrow(new IllegalArgumentException("Account not found"));
         when(mapper.toFinancialOperation(any(FinancialOperationRequestDto.class), any(Account.class),
             any(Account.class), any(Currency.class))).thenReturn(operation);
@@ -198,7 +197,7 @@ class FinancialOperationServiceTest {
         when(repository.findById(5L)).thenReturn(Optional.of(operation));
         when(mapper.toFinancialOperationResponseDto(operation)).thenReturn(response);
 
-        FinancialOperationResponseDto result = service.getById(5L);
+        FinancialOperationResponseDto result = service.getById(5L).orElseThrow();
 
         assertEquals(response, result);
     }
@@ -343,7 +342,7 @@ class FinancialOperationServiceTest {
     void getById_shouldThrowWhenNotFound() {
         when(repository.findById(700L)).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> service.getById(700L));
+        assertTrue(service.getById(700L).isEmpty());
     }
 
     @Test

@@ -56,9 +56,9 @@ public class FinancialOperationService {
         return operations;
     }
 
-    public FinancialOperationResponseDto getById(Long id) {
+    public Optional<FinancialOperationResponseDto> getById(Long id) {
         LOG.debug("Fetching operation by id");
-        return mapper.toFinancialOperationResponseDto(repository.findById(id).orElseThrow());
+        return repository.findById(id).map(mapper::toFinancialOperationResponseDto);
     }
 
     public List<FinancialOperationResponseDto> getBySender(Long senderUserId) {
@@ -193,8 +193,8 @@ public class FinancialOperationService {
             throw new IllegalArgumentException("Incorrect amount");
         }
 
-        Account sender = accountService.getEntityById(dto.getSenderAccountId());
-        Account receiver = accountService.getEntityById(dto.getReceiverAccountId());
+        Account sender = accountService.getEntityById(dto.getSenderAccountId()).orElseThrow();
+        Account receiver = accountService.getEntityById(dto.getReceiverAccountId()).orElseThrow();
 
         sender.setBalance(sender.getBalance().subtract(dto.getAmount()));
 

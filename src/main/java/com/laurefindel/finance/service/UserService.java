@@ -17,6 +17,7 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -35,10 +36,10 @@ public class UserService {
         this.currencyService = currencyService;
     }
 
-    public UserResponseDto getById(Long id) {
+    public Optional<UserResponseDto> getById(Long id) {
         LOG.debug("Fetching user by id");
-        return mapper
-            .toUserResponseDto(repository.findById(id).orElseThrow());
+        return repository.findById(id)
+            .map(mapper::toUserResponseDto);
     }
 
     public List<UserResponseDto> getAll() {
@@ -48,19 +49,18 @@ public class UserService {
         return users;
     }
 
-    public UserResponseDto getByFirstAndLastName(String firstName, String lastName) {
+    public Optional<UserResponseDto> getByFirstAndLastName(String firstName, String lastName) {
         LOG.debug("Fetching user by first and last name");
-        return mapper
-            .toUserResponseDto(repository.findByFirstNameAndLastName(firstName, lastName)
+        return repository.findByFirstNameAndLastName(firstName, lastName)
             .stream()
             .findFirst()
-            .orElseThrow());
+            .map(mapper::toUserResponseDto);
     }
 
-    public UserResponseDto getByEmail(String email) {
+    public Optional<UserResponseDto> getByEmail(String email) {
         LOG.debug("Fetching user by email");
-        return mapper
-            .toUserResponseDto(repository.findByEmail(email).orElseThrow());
+        return repository.findByEmail(email)
+            .map(mapper::toUserResponseDto);
     }
 
     public UserResponseDto save(UserRequestDto user) {
@@ -80,7 +80,7 @@ public class UserService {
         User user = mapper.toUser(userDto);
         user.setStatus("ACTIVE");
 
-        Currency defaultCurrency = currencyService.getEntityByCode("USD");
+        Currency defaultCurrency = currencyService.getEntityByCode("USD").orElseThrow();
         Account account = new Account();
         account.setBalance(BigDecimal.ZERO);
         account.setStatus("ACTIVE");
@@ -89,7 +89,7 @@ public class UserService {
         List<Account> accounts = new ArrayList<>();
         accounts.add(account);
         user.setAccounts(accounts);
-        user.getRoles().add(roleService.getEntityByName("User"));
+        user.getRoles().add(roleService.getEntityByName("User").orElseThrow());
 
         User savedUser = repository.save(user);
         LOG.info("User registered id={} with default account and role", savedUser.getId());
@@ -122,3 +122,4 @@ public class UserService {
         return mapper.toUserResponseDto(savedUser);
     }
 }
+

@@ -22,6 +22,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -71,8 +72,8 @@ class UserServiceTest {
         UserResponseDto response = new UserResponseDto();
 
         when(mapper.toUser(request)).thenReturn(user);
-        when(currencyService.getEntityByCode("USD")).thenReturn(usd);
-        when(roleService.getEntityByName("User")).thenReturn(role);
+        when(currencyService.getEntityByCode("USD")).thenReturn(Optional.of(usd));
+        when(roleService.getEntityByName("User")).thenReturn(Optional.of(role));
         when(repository.save(user)).thenReturn(user);
         when(mapper.toUserResponseDto(user)).thenReturn(response);
 
@@ -137,7 +138,7 @@ class UserServiceTest {
         when(repository.findById(2L)).thenReturn(Optional.of(user));
         when(mapper.toUserResponseDto(user)).thenReturn(response);
 
-        UserResponseDto result = service.getById(2L);
+        UserResponseDto result = service.getById(2L).orElseThrow();
 
         assertEquals(response, result);
     }
@@ -150,7 +151,7 @@ class UserServiceTest {
         when(repository.findByFirstNameAndLastName("John", "Doe")).thenReturn(List.of(user));
         when(mapper.toUserResponseDto(user)).thenReturn(response);
 
-        UserResponseDto result = service.getByFirstAndLastName("John", "Doe");
+        UserResponseDto result = service.getByFirstAndLastName("John", "Doe").orElseThrow();
 
         assertEquals(response, result);
     }
@@ -163,7 +164,7 @@ class UserServiceTest {
         when(repository.findByEmail("user@mail.com")).thenReturn(Optional.of(user));
         when(mapper.toUserResponseDto(user)).thenReturn(response);
 
-        UserResponseDto result = service.getByEmail("user@mail.com");
+        UserResponseDto result = service.getByEmail("user@mail.com").orElseThrow();
 
         assertEquals(response, result);
     }
@@ -207,21 +208,21 @@ class UserServiceTest {
     void getById_shouldThrowWhenNotFound() {
         when(repository.findById(404L)).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> service.getById(404L));
+        assertTrue(service.getById(404L).isEmpty());
     }
 
     @Test
     void getByEmail_shouldThrowWhenNotFound() {
         when(repository.findByEmail("missing@mail.com")).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> service.getByEmail("missing@mail.com"));
+        assertTrue(service.getByEmail("missing@mail.com").isEmpty());
     }
 
     @Test
     void getByFirstAndLastName_shouldThrowWhenNotFound() {
         when(repository.findByFirstNameAndLastName("No", "User")).thenReturn(List.of());
 
-        assertThrows(NoSuchElementException.class, () -> service.getByFirstAndLastName("No", "User"));
+        assertTrue(service.getByFirstAndLastName("No", "User").isEmpty());
     }
 
     @Test

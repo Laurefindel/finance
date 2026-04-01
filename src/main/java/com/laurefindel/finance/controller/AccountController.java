@@ -48,7 +48,7 @@ public class AccountController {
     @Operation(summary = "Get account by id")
     public ResponseEntity<AccountResponseDto> getById(
             @Parameter(description = "Account id", example = "1") @PathVariable Long id) {
-        return ResponseEntity.ok(accountService.getById(id));
+        return ResponseEntity.ok(accountService.getById(id).orElseThrow());
     }
 
     @GetMapping
@@ -60,7 +60,7 @@ public class AccountController {
             @RequestParam(required = false) String currency) {
 
         if (userId != null && currency != null) {
-            Currency curr = currencyService.getEntityByCode(currency);
+            Currency curr = currencyService.getEntityByCode(currency).orElseThrow();
             return ResponseEntity.ok(accountService.getByUserIdAndCurrency(userId, curr));
         }
 
@@ -69,7 +69,7 @@ public class AccountController {
         }
 
         if (currency != null) {
-            Currency curr = currencyService.getEntityByCode(currency);
+            Currency curr = currencyService.getEntityByCode(currency).orElseThrow();
             return ResponseEntity.ok(accountService.getByCurrency(curr));
         }
 

@@ -13,11 +13,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -92,7 +91,7 @@ class RoleServiceTest {
         when(roleRepository.findById(1L)).thenReturn(java.util.Optional.of(role));
         when(mapper.toRoleDto(role)).thenReturn(roleDto);
 
-        RoleDto result = service.getById(1L);
+        RoleDto result = service.getById(1L).orElseThrow();
 
         assertEquals(roleDto, result);
     }
@@ -105,7 +104,7 @@ class RoleServiceTest {
         when(roleRepository.findByName("User")).thenReturn(role);
         when(mapper.toRoleDto(role)).thenReturn(roleDto);
 
-        RoleDto result = service.getByName("User");
+        RoleDto result = service.getByName("User").orElseThrow();
 
         assertEquals(roleDto, result);
     }
@@ -129,7 +128,7 @@ class RoleServiceTest {
         Role role = new Role();
         when(roleRepository.findById(3L)).thenReturn(java.util.Optional.of(role));
 
-        Role result = service.getEntityById(3L);
+        Role result = service.getEntityById(3L).orElseThrow();
 
         assertEquals(role, result);
     }
@@ -139,7 +138,7 @@ class RoleServiceTest {
         Role role = new Role();
         when(roleRepository.findByName("Admin")).thenReturn(role);
 
-        Role result = service.getEntityByName("Admin");
+        Role result = service.getEntityByName("Admin").orElseThrow();
 
         assertEquals(role, result);
     }
@@ -148,13 +147,13 @@ class RoleServiceTest {
     void getById_shouldThrowWhenNotFound() {
         when(roleRepository.findById(707L)).thenReturn(java.util.Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> service.getById(707L));
+        assertTrue(service.getById(707L).isEmpty());
     }
 
     @Test
     void getEntityById_shouldThrowWhenNotFound() {
         when(roleRepository.findById(808L)).thenReturn(java.util.Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> service.getEntityById(808L));
+        assertTrue(service.getEntityById(808L).isEmpty());
     }
 }

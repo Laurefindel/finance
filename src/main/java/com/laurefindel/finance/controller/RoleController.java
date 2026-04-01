@@ -46,7 +46,7 @@ public class RoleController {
     public ResponseEntity<RoleDto> getById(
         @Parameter(description = "Role id", example = "1") @PathVariable Long id
     ) {
-        return ResponseEntity.ok(roleService.getById(id));
+        return ResponseEntity.ok(roleService.getById(id).orElseThrow());
     }
 
     @GetMapping("/by-name")
@@ -54,7 +54,7 @@ public class RoleController {
     public ResponseEntity<RoleDto> getByName(
         @Parameter(description = "Role name", example = "User") @RequestParam String name
     ) {
-        return ResponseEntity.ok(roleService.getByName(name));
+        return ResponseEntity.ok(roleService.getByName(name).orElseThrow());
     }
 
     @PostMapping

@@ -1,6 +1,7 @@
 package com.laurefindel.finance.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -25,14 +26,14 @@ public class RoleService {
         this.mapper = mapper;
     }
 
-    public RoleDto getById(Long id) {
+    public Optional<RoleDto> getById(Long id) {
         LOG.debug("Fetching role by id");
-        return mapper.toRoleDto(roleRepository.findById(id).orElseThrow());
+        return roleRepository.findById(id).map(mapper::toRoleDto);
     }
 
-    public RoleDto getByName(String name) {
+    public Optional<RoleDto> getByName(String name) {
         LOG.debug("Fetching role by name");
-        return mapper.toRoleDto(roleRepository.findByName(name));
+        return Optional.ofNullable(roleRepository.findByName(name)).map(mapper::toRoleDto);
     }
 
     public RoleDto save(RoleDto role) {
@@ -72,13 +73,13 @@ public class RoleService {
         return roles;
     }
     
-    public Role getEntityById(Long id) {
+    public Optional<Role> getEntityById(Long id) {
         LOG.debug("Fetching role entity by id");
-        return roleRepository.findById(id).orElseThrow();
+        return roleRepository.findById(id);
     }
 
-    public Role getEntityByName(String name) {
+    public Optional<Role> getEntityByName(String name) {
         LOG.debug("Fetching role entity by name");
-        return roleRepository.findByName(name);
+        return Optional.ofNullable(roleRepository.findByName(name));
     }
 }

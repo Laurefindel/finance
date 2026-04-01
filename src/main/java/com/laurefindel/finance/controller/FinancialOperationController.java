@@ -67,7 +67,7 @@ public class FinancialOperationController {
     public ResponseEntity<FinancialOperationResponseDto> getById(
         @Parameter(description = "Operation id", example = "1") @PathVariable Long id
     ) {
-        return ResponseEntity.ok(service.getById(id));
+        return ResponseEntity.ok(service.getById(id).orElseThrow());
     } 
   
     @PostMapping

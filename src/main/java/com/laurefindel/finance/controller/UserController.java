@@ -46,7 +46,7 @@ public class UserController {
     public ResponseEntity<UserResponseDto> getById(
         @Parameter(description = "User id", example = "1") @PathVariable Long id
     ) {
-        return ResponseEntity.ok(service.getById(id));
+        return ResponseEntity.ok(service.getById(id).orElseThrow());
     }
 
     @PostMapping("/register")

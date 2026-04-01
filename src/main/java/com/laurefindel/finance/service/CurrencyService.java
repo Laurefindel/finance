@@ -1,6 +1,7 @@
 package com.laurefindel.finance.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +25,15 @@ public class CurrencyService {
         this.mapper = mapper;
     }
 
-    public CurrencyResponseDto getById(Long id) {
+    public Optional<CurrencyResponseDto> getById(Long id) {
         LOG.debug("Fetching currency by id");
-        return mapper.toCurrencyResponseDto(currencyRepository.findById(id).orElseThrow()); 
+        return currencyRepository.findById(id).map(mapper::toCurrencyResponseDto);
     }
 
-    public CurrencyResponseDto getByCode(String code) {
+    public Optional<CurrencyResponseDto> getByCode(String code) {
         LOG.debug("Fetching currency by code");
-        return mapper.toCurrencyResponseDto(currencyRepository.findByCode(code));
+        return Optional.ofNullable(currencyRepository.findByCode(code))
+            .map(mapper::toCurrencyResponseDto);
     }
 
     public CurrencyResponseDto save(CurrencyRequestDto currency) {
@@ -62,9 +64,9 @@ public class CurrencyService {
         return currencies;
     }
 
-    public Currency getEntityByCode(String code) {
+    public Optional<Currency> getEntityByCode(String code) {
         LOG.debug("Fetching currency entity by code");
-        return currencyRepository.findByCode(code);
+        return Optional.ofNullable(currencyRepository.findByCode(code));
     }
 
     public CurrencyResponseDto update(Long id, CurrencyRequestDto dto) {

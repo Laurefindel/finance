@@ -2,6 +2,7 @@ package com.laurefindel.finance.service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,11 +35,10 @@ public class AccountService {
         this.userRepository = userRepository;
     }
 
-    public AccountResponseDto getById(Long id) {
+    public Optional<AccountResponseDto> getById(Long id) {
         LOG.debug("Fetching account by id");
-        return mapper.toAccountResponseDto(accountRepository
-            .findById(id)
-            .orElseThrow());
+        return accountRepository.findById(id)
+            .map(mapper::toAccountResponseDto);
     }
 
     public AccountResponseDto save(AccountRequestDto account) {
@@ -89,14 +89,14 @@ public class AccountService {
         return accounts;
     }
 
-    public Account getEntityById(Long id) {
+    public Optional<Account> getEntityById(Long id) {
         LOG.debug("Fetching account entity by id");
-        return accountRepository.findById(id).orElseThrow();
+        return accountRepository.findById(id);
     }
 
     public AccountResponseDto replenish(Long id, BigDecimal amount) {
         LOG.info("Replenishing account");
-        Account account = accountRepository.findById(id).orElseThrow();
+        Account account = getEntityById(id).orElseThrow();
         account.setBalance(account.getBalance().add(amount));
         Account savedAccount = accountRepository.save(account);
         LOG.info("Account replenished id={} newBalance={}", savedAccount.getId(), savedAccount.getBalance());
