@@ -169,16 +169,61 @@ class FinancialOperationServiceTest {
             any(Account.class), any(Currency.class))).thenReturn(operation);
         when(repository.save(operation)).thenReturn(operation);
         when(mapper.toFinancialOperationResponseDto(operation)).thenReturn(mapped);
+        List<FinancialOperationRequestDto> operations = List.of(ok, broken);
 
         PartialBulkOperationException ex = assertThrows(
             PartialBulkOperationException.class,
-            () -> service.doBulkOperationWithoutTransaction(List.of(ok, broken))
+            () -> service.doBulkOperationWithoutTransaction(operations)
         );
 
         assertEquals(1, ex.getSavedCount());
         assertEquals(1, ex.getFailedCount());
         assertEquals("Account not found", ex.getFailedOperations().get("operation_2"));
         verify(repository, times(1)).save(operation);
+    }
+
+    @Test
+    void doBulkOperationWithoutTransaction_shouldReturnAllResultsWhenNoFailures() {
+        FinancialOperationRequestDto first = request(1L, 2L, "10.00");
+        FinancialOperationRequestDto second = request(1L, 2L, "15.00");
+
+        Currency currency = new Currency();
+        currency.setId(1L);
+        currency.setCode("USD");
+
+        Account sender = account(1L, "100.00", currency);
+        Account receiver = account(2L, "0.00", currency);
+
+        FinancialOperation operation = new FinancialOperation();
+        FinancialOperationResponseDto mapped = new FinancialOperationResponseDto();
+
+        when(accountService.getEntityById(1L)).thenReturn(Optional.of(sender));
+        when(accountService.getEntityById(2L)).thenReturn(Optional.of(receiver));
+        when(mapper.toFinancialOperation(any(FinancialOperationRequestDto.class), any(Account.class),
+            any(Account.class), any(Currency.class))).thenReturn(operation);
+        when(repository.save(operation)).thenReturn(operation);
+        when(mapper.toFinancialOperationResponseDto(operation)).thenReturn(mapped);
+
+        List<FinancialOperationResponseDto> result =
+            service.doBulkOperationWithoutTransaction(List.of(first, second));
+
+        assertEquals(2, result.size());
+        verify(repository, times(2)).save(operation);
+    }
+
+    @Test
+    void doBulkOperationWithoutTransaction_shouldUseExceptionClassNameWhenMessageIsNull() {
+        FinancialOperationRequestDto broken = request(1L, 99L, "10.00");
+        List<FinancialOperationRequestDto> operations = List.of(broken);
+
+        when(accountService.getEntityById(1L)).thenThrow(new RuntimeException());
+
+        PartialBulkOperationException ex = assertThrows(
+            PartialBulkOperationException.class,
+            () -> service.doBulkOperationWithoutTransaction(operations)
+        );
+
+        assertEquals("RuntimeException", ex.getFailedOperations().get("operation_1"));
     }
 
     @Test
