@@ -66,13 +66,12 @@ jobs:
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
           HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
-          APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
         run: |
-          if [ -n "$HEROKU_API_KEY" ] && [ -n "$HEROKU_APP_NAME" ] && [ -n "$APP_HEALTHCHECK_URL" ]; then
+          if [ -n "$HEROKU_API_KEY" ] && [ -n "$HEROKU_APP_NAME" ]; then
             echo "do_deploy=true" >> "$GITHUB_OUTPUT"
           else
             echo "do_deploy=false" >> "$GITHUB_OUTPUT"
-            echo "Some deploy secrets are missing; deploy steps will be skipped."
+            echo "HEROKU_API_KEY or HEROKU_APP_NAME is missing; deploy steps will be skipped."
           fi
 
       - name: Install Heroku CLI
@@ -104,15 +103,14 @@ jobs:
       - name: Health check
         if: steps.secret_check.outputs.do_deploy == 'true'
         env:
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
           APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
         run: |
-          if [ -z "$APP_HEALTHCHECK_URL" ]; then
-            echo "APP_HEALTHCHECK_URL is not set"
-            exit 1
-          fi
+          HEALTH_URL="${APP_HEALTHCHECK_URL:-https://${HEROKU_APP_NAME}.herokuapp.com/actuator/health}"
+          echo "Using healthcheck URL: $HEALTH_URL"
 
           for i in {1..36}; do
-            RESPONSE=$(curl -sS -L --max-time 15 -w "\nHTTP_CODE:%{http_code}" "$APP_HEALTHCHECK_URL" || true)
+            RESPONSE=$(curl -sS -L --max-time 15 -w "\nHTTP_CODE:%{http_code}" "$HEALTH_URL" || true)
             BODY=$(echo "$RESPONSE" | sed '$d')
             HTTP_CODE=$(echo "$RESPONSE" | tail -n1 | sed 's/HTTP_CODE://')
 
