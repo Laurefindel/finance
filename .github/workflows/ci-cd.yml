@@ -78,6 +78,18 @@ jobs:
         if: steps.secret_check.outputs.do_deploy == 'true'
         run: curl https://cli-assets.heroku.com/install.sh | sh
 
+      - name: Validate Heroku app exists
+        if: steps.secret_check.outputs.do_deploy == 'true'
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+        run: |
+          if ! heroku apps:info --app "$HEROKU_APP_NAME" > /dev/null 2>&1; then
+            echo "Heroku app '$HEROKU_APP_NAME' not found or access denied."
+            echo "Check GitHub secret HEROKU_APP_NAME and account permissions for HEROKU_API_KEY."
+            exit 1
+          fi
+
       - name: Deploy Docker image to Heroku
         if: steps.secret_check.outputs.do_deploy == 'true'
         env:
