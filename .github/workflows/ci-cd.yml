@@ -104,7 +104,7 @@ jobs:
             exit 1
           fi
 
-          DB_PARTS=$(DATABASE_URL="$DATABASE_URL" python3 -c "import os, urllib.parse as u; p=u.urlparse(os.environ['DATABASE_URL']); print('\n'.join([f'jdbc:postgresql://{p.hostname}:{p.port or 5432}/{p.path.lstrip('/')}?sslmode=require', u.unquote(p.username or ''), u.unquote(p.password or '')]))")
+          DB_PARTS=$(DATABASE_URL="$DATABASE_URL" python3 -c "import os, urllib.parse as u; p=u.urlparse(os.environ['DATABASE_URL']); print('jdbc:postgresql://{}:{}/{}?sslmode=require'.format(p.hostname, p.port or 5432, p.path.lstrip('/'))); print(u.unquote(p.username or '')); print(u.unquote(p.password or ''))")
           SPRING_DATASOURCE_URL=$(echo "$DB_PARTS" | sed -n '1p')
           SPRING_DATASOURCE_USERNAME=$(echo "$DB_PARTS" | sed -n '2p')
           SPRING_DATASOURCE_PASSWORD=$(echo "$DB_PARTS" | sed -n '3p')
@@ -113,6 +113,8 @@ jobs:
             SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL" \
             SPRING_DATASOURCE_USERNAME="$SPRING_DATASOURCE_USERNAME" \
             SPRING_DATASOURCE_PASSWORD="$SPRING_DATASOURCE_PASSWORD" \
+            LOGGING_CONFIG="classpath:logback-heroku.xml" \
+            JAVA_OPTS="-XX:MaxRAMPercentage=75.0 -XX:+UseContainerSupport" \
             --app "$HEROKU_APP_NAME"
 
       - name: Deploy Docker image to Heroku
