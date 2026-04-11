@@ -483,5 +483,4 @@ Pipeline includes:
 
 - `HEROKU_API_KEY` — Heroku API key
 - `HEROKU_APP_NAME` — Heroku app name
-- `HEROKU_EMAIL` — email of Heroku account
 - `APP_HEALTHCHECK_URL` — full URL to `/actuator/health` on deployed service
