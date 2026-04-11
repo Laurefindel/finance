@@ -104,9 +104,16 @@ jobs:
             exit 1
           fi
 
-          JDBC_URL=$(DATABASE_URL="$DATABASE_URL" python3 -c "import os, urllib.parse as u; p=u.urlparse(os.environ['DATABASE_URL']); q=u.urlencode({'sslmode':'require','user':p.username or '','password':p.password or ''}); print('jdbc:postgresql://%s:%s/%s?%s' % (p.hostname, p.port or 5432, p.path.lstrip('/'), q))")
+          DB_PARTS=$(DATABASE_URL="$DATABASE_URL" python3 -c "import os, urllib.parse as u; p=u.urlparse(os.environ['DATABASE_URL']); print('\n'.join([f'jdbc:postgresql://{p.hostname}:{p.port or 5432}/{p.path.lstrip('/')}?sslmode=require', u.unquote(p.username or ''), u.unquote(p.password or '')]))")
+          SPRING_DATASOURCE_URL=$(echo "$DB_PARTS" | sed -n '1p')
+          SPRING_DATASOURCE_USERNAME=$(echo "$DB_PARTS" | sed -n '2p')
+          SPRING_DATASOURCE_PASSWORD=$(echo "$DB_PARTS" | sed -n '3p')
 
-          heroku config:set SPRING_DATASOURCE_URL="$JDBC_URL" --app "$HEROKU_APP_NAME"
+          heroku config:set \
+            SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL" \
+            SPRING_DATASOURCE_USERNAME="$SPRING_DATASOURCE_USERNAME" \
+            SPRING_DATASOURCE_PASSWORD="$SPRING_DATASOURCE_PASSWORD" \
+            --app "$HEROKU_APP_NAME"
 
       - name: Deploy Docker image to Heroku
         if: steps.secret_check.outputs.do_deploy == 'true'
@@ -156,7 +163,7 @@ jobs:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
           HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
           CI: true
-        run: heroku logs --tail --num 200 --app "$HEROKU_APP_NAME"
+        run: heroku logs --num 200 --app "$HEROKU_APP_NAME"
 
       - name: Deploy skipped
         if: steps.secret_check.outputs.do_deploy != 'true'
