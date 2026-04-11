@@ -116,6 +116,8 @@ jobs:
             LOGGING_CONFIG="classpath:logback-heroku.xml" \
             --app "$HEROKU_APP_NAME"
 
+          heroku config:unset JAVA_OPTS --app "$HEROKU_APP_NAME" || true
+
       - name: Deploy Docker image to Heroku
         if: steps.secret_check.outputs.do_deploy == 'true'
         env:
