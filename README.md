@@ -418,3 +418,71 @@ Artifacts:
 - `jmeter/results/results.jtl`
 - `jmeter/results/summary.log`
 - `jmeter/results/dashboard/index.html`
+
+---
+
+## Docker
+
+### Environment variables
+
+Copy and edit:
+
+```bash
+cp .env.example .env
+```
+
+Used variables:
+
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_PORT`
+- `APP_PORT`
+- `JAVA_OPTS`
+
+### Run application + PostgreSQL
+
+```bash
+docker compose up -d --build
+```
+
+Health endpoint:
+
+- `http://localhost:8080/actuator/health`
+
+---
+
+## Free PaaS deployment (Render)
+
+Project contains `render.yaml` blueprint.
+
+1. Create a Web Service in Render from this repository.
+2. Select `render.yaml` during setup.
+3. Set environment variables in Render:
+  - `SPRING_DATASOURCE_URL`
+  - `SPRING_DATASOURCE_USERNAME`
+  - `SPRING_DATASOURCE_PASSWORD`
+4. Ensure healthcheck path is `/actuator/health`.
+
+> For free tier DB, you can use an external PostgreSQL provider (for example, Neon free plan).
+
+---
+
+## GitHub CI/CD
+
+Workflow file:
+
+- `.github/workflows/ci-cd.yml`
+
+Pipeline includes:
+
+1. Maven build (`clean verify`)
+2. Unit tests
+3. Docker image build
+4. Deployment trigger to Render
+5. Post-deploy healthcheck
+
+### Required GitHub Secrets
+
+- `RENDER_DEPLOY_HOOK_URL` — Render deploy hook URL
+- `APP_HEALTHCHECK_URL` — full URL to `/actuator/health` on deployed service

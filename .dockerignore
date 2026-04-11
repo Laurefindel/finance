@@ -1,0 +1,9 @@
+target/
+.git/
+.github/
+.idea/
+*.iml
+logs/
+jmeter/results/
+README.md
+HELP.md
