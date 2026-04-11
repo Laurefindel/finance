@@ -90,6 +90,52 @@ jobs:
             exit 1
           fi
 
+      - name: Configure datasource from Heroku DATABASE_URL
+        if: steps.secret_check.outputs.do_deploy == 'true'
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+        run: |
+          DATABASE_URL=$(heroku config:get DATABASE_URL --app "$HEROKU_APP_NAME" || true)
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL is not set on Heroku app '$HEROKU_APP_NAME'."
+            echo "Attach Heroku Postgres addon first, then rerun workflow."
+            exit 1
+          fi
+
+          PARSED=$(python3 - <<'PY'
+import os
+from urllib.parse import urlparse
+
+url = os.environ['DATABASE_URL']
+parsed = urlparse(url)
+
+if parsed.scheme not in ('postgres', 'postgresql'):
+    raise SystemExit(f'Unsupported DATABASE_URL scheme: {parsed.scheme}')
+
+host = parsed.hostname
+port = parsed.port or 5432
+db = parsed.path.lstrip('/')
+user = parsed.username or ''
+password = parsed.password or ''
+
+jdbc_url = f'jdbc:postgresql://{host}:{port}/{db}?sslmode=require'
+print(jdbc_url)
+print(user)
+print(password)
+PY
+)
+
+          SPRING_DATASOURCE_URL=$(echo "$PARSED" | sed -n '1p')
+          SPRING_DATASOURCE_USERNAME=$(echo "$PARSED" | sed -n '2p')
+          SPRING_DATASOURCE_PASSWORD=$(echo "$PARSED" | sed -n '3p')
+
+          heroku config:set \
+            SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL" \
+            SPRING_DATASOURCE_USERNAME="$SPRING_DATASOURCE_USERNAME" \
+            SPRING_DATASOURCE_PASSWORD="$SPRING_DATASOURCE_PASSWORD" \
+            --app "$HEROKU_APP_NAME"
+
       - name: Deploy Docker image to Heroku
         if: steps.secret_check.outputs.do_deploy == 'true'
         env:
