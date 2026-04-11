@@ -83,10 +83,10 @@ jobs:
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
           HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+          CI: true
         run: |
           if ! heroku apps:info --app "$HEROKU_APP_NAME" > /dev/null 2>&1; then
             echo "Heroku app '$HEROKU_APP_NAME' not found or access denied."
-            echo "Check GitHub secret HEROKU_APP_NAME and account permissions for HEROKU_API_KEY."
             exit 1
           fi
 
@@ -95,6 +95,7 @@ jobs:
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
           HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+          CI: true
         run: |
           DATABASE_URL=$(heroku config:get DATABASE_URL --app "$HEROKU_APP_NAME" || true)
           if [ -z "$DATABASE_URL" ]; then
@@ -103,37 +104,17 @@ jobs:
             exit 1
           fi
 
-            PARSED=$(DATABASE_URL="$DATABASE_URL" python3 -c "import os; from urllib.parse import urlparse; u=urlparse(os.environ['DATABASE_URL']);
-      if u.scheme not in ('postgres','postgresql'): raise SystemExit(f'Unsupported DATABASE_URL scheme: {u.scheme}');
-      host=u.hostname; port=u.port or 5432; db=u.path.lstrip('/'); user=u.username or ''; pwd=u.password or '';
-      print(f'jdbc:postgresql://{host}:{port}/{db}?sslmode=require'); print(user); print(pwd)")
+          JDBC_URL=$(DATABASE_URL="$DATABASE_URL" python3 -c "import os, urllib.parse as u; p=u.urlparse(os.environ['DATABASE_URL']); q=u.urlencode({'sslmode':'require','user':p.username or '','password':p.password or ''}); print('jdbc:postgresql://%s:%s/%s?%s' % (p.hostname, p.port or 5432, p.path.lstrip('/'), q))")
 
-          SPRING_DATASOURCE_URL=$(echo "$PARSED" | sed -n '1p')
-          SPRING_DATASOURCE_USERNAME=$(echo "$PARSED" | sed -n '2p')
-          SPRING_DATASOURCE_PASSWORD=$(echo "$PARSED" | sed -n '3p')
-
-          heroku config:set \
-            SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL" \
-            SPRING_DATASOURCE_USERNAME="$SPRING_DATASOURCE_USERNAME" \
-            SPRING_DATASOURCE_PASSWORD="$SPRING_DATASOURCE_PASSWORD" \
-            --app "$HEROKU_APP_NAME"
+          heroku config:set SPRING_DATASOURCE_URL="$JDBC_URL" --app "$HEROKU_APP_NAME"
 
       - name: Deploy Docker image to Heroku
         if: steps.secret_check.outputs.do_deploy == 'true'
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
           HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+          CI: true
         run: |
-          if [ -z "$HEROKU_API_KEY" ]; then
-            echo "HEROKU_API_KEY is not set"
-            exit 1
-          fi
-
-          if [ -z "$HEROKU_APP_NAME" ]; then
-            echo "HEROKU_APP_NAME is not set"
-            exit 1
-          fi
-
           heroku stack:set container --app "$HEROKU_APP_NAME"
           echo "$HEROKU_API_KEY" | docker login --username=_ --password-stdin registry.heroku.com
           docker build -t "registry.heroku.com/$HEROKU_APP_NAME/web" .
@@ -174,6 +155,7 @@ jobs:
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
           HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+          CI: true
         run: heroku logs --tail --num 200 --app "$HEROKU_APP_NAME"
 
       - name: Deploy skipped
