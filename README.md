@@ -452,19 +452,16 @@ Health endpoint:
 
 ---
 
-## Free PaaS deployment (Render)
+## PaaS deployment (Heroku)
 
-Project contains `render.yaml` blueprint.
-
-1. Create a Web Service in Render from this repository.
-2. Select `render.yaml` during setup.
-3. Set environment variables in Render:
+1. Create Heroku app.
+2. In Heroku app settings, add config vars:
   - `SPRING_DATASOURCE_URL`
   - `SPRING_DATASOURCE_USERNAME`
   - `SPRING_DATASOURCE_PASSWORD`
-4. Ensure healthcheck path is `/actuator/health`.
+3. Set app health endpoint to `/actuator/health` (used in CI validation).
 
-> For free tier DB, you can use an external PostgreSQL provider (for example, Neon free plan).
+> For database, you can use Heroku Postgres or external PostgreSQL provider.
 
 ---
 
@@ -479,10 +476,12 @@ Pipeline includes:
 1. Maven build (`clean verify`)
 2. Unit tests
 3. Docker image build
-4. Deployment trigger to Render
+4. Deployment to Heroku
 5. Post-deploy healthcheck
 
 ### Required GitHub Secrets
 
-- `RENDER_DEPLOY_HOOK_URL` — Render deploy hook URL
+- `HEROKU_API_KEY` — Heroku API key
+- `HEROKU_APP_NAME` — Heroku app name
+- `HEROKU_EMAIL` — email of Heroku account
 - `APP_HEALTHCHECK_URL` — full URL to `/actuator/health` on deployed service
