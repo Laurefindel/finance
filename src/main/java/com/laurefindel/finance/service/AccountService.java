@@ -96,11 +96,17 @@ public class AccountService {
 
     public AccountResponseDto replenish(Long id, BigDecimal amount) {
         LOG.info("Replenishing account");
+        Account savedAccount = replenishBalanceOnly(id, amount);
+        return mapper.toAccountResponseDto(savedAccount);
+    }
+
+    public Account replenishBalanceOnly(Long id, BigDecimal amount) {
+        LOG.info("Replenishing account balance only");
         Account account = getEntityById(id).orElseThrow();
         account.setBalance(account.getBalance().add(amount));
         Account savedAccount = accountRepository.save(account);
         LOG.info("Account replenished id={} newBalance={}", savedAccount.getId(), savedAccount.getBalance());
-        return mapper.toAccountResponseDto(savedAccount);
+        return savedAccount;
     }
 
     public Account save(Account account) {

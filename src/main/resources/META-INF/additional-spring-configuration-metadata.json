@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "app.async.replenish-delay-ms",
+      "type": "java.lang.Long",
+      "description": "Artificial delay in milliseconds before async replenish execution.",
+      "defaultValue": 15000
+    }
+  ]
+}

@@ -321,4 +321,100 @@ The project follows industry best practices and is continuously analyzed using:
 
 🔗 [https://sonarcloud.io/summary/new_code?id=Laurefindel_finance&branch=main](https://sonarcloud.io/summary/new_code?id=Laurefindel_finance&branch=main)
 
+---
+
+## Async Business Operation (Task ID + Status)
+
+Implemented endpoints:
+
+| Method | Endpoint                   | Description                              |
+| ------ | -------------------------- | ---------------------------------------- |
+| POST   | `/async/replenish`         | Starts async replenish and returns taskId |
+| GET    | `/async/replenish/{taskId}`| Returns task status (`PENDING/RUNNING/SUCCESS/FAILED`) |
+| GET    | `/async/replenish/metrics` | Returns atomic task counters             |
+
+The async worker uses `@Async` + `CompletableFuture` and has configurable delay:
+
+```yaml
+app:
+  async:
+    replenish-delay-ms: 15000
 ```
+
+This delay makes status polling observable (task is not completed instantly).
+
+---
+
+## Thread Safety: Atomic Counter
+
+`AsyncTaskCounterService` uses `AtomicLong` counters:
+
+- submitted
+- running
+- succeeded
+- failed
+
+These counters are safe under concurrent access and exposed via `/async/replenish/metrics`.
+
+---
+
+## Race Condition Demo (50+ Threads)
+
+Endpoint:
+
+| Method | Endpoint                 | Description |
+| ------ | ------------------------ | ----------- |
+| GET    | `/concurrency/race-demo` | Runs concurrency demo using `ExecutorService` |
+
+Query params:
+
+- `threads` (default `64`, must be `>= 50`)
+- `incrementsPerThread` (default `10000`)
+
+The demo compares:
+
+- unsafe counter (no synchronization) → race condition
+- synchronized counter (`synchronized`) → correct result
+- atomic counter (`AtomicInteger`) → correct result
+
+---
+
+## JMeter Load Testing
+
+JMeter test plan:
+
+- `jmeter/async-metrics-load-test.jmx`
+
+Scenario:
+
+- 100 threads
+- ramp-up 10s
+- 20 loops per thread
+- endpoint `GET /async/replenish/metrics`
+- total samples: 2000
+
+### Run command
+
+```bash
+jmeter -n \
+  -t jmeter/async-metrics-load-test.jmx \
+  -l jmeter/results/results.jtl \
+  -j jmeter/results/summary.log \
+  -e -o jmeter/results/dashboard
+```
+
+### Results (run on 2026-04-10)
+
+- Samples: `2000`
+- Errors: `0` (`0.00%`)
+- Mean response time: `1.521 ms`
+- Median response time: `1 ms`
+- Max response time: `264 ms`
+- Throughput: `204.67 req/s`
+- p90/p95/p99 (JMeter `pct1/pct2/pct3`): `3 / 3 / 5 ms`
+
+Artifacts:
+
+- `jmeter/results/results.jtl`
+- `jmeter/results/summary.log`
+- `jmeter/results/dashboard/index.html`
