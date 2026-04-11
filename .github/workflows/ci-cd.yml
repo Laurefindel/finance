@@ -111,18 +111,30 @@ jobs:
             exit 1
           fi
 
-          for i in {1..30}; do
-            STATUS=$(curl -sS "$APP_HEALTHCHECK_URL" | grep -o '"status":"[A-Z]*"' || true)
-            if [ "$STATUS" = '"status":"UP"' ]; then
+          for i in {1..36}; do
+            RESPONSE=$(curl -sS -L --max-time 15 -w "\nHTTP_CODE:%{http_code}" "$APP_HEALTHCHECK_URL" || true)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+            HTTP_CODE=$(echo "$RESPONSE" | tail -n1 | sed 's/HTTP_CODE://')
+
+            if [ "$HTTP_CODE" = "200" ] && echo "$BODY" | grep -Eq '"status"[[:space:]]*:[[:space:]]*"UP"'; then
               echo "Healthcheck passed"
               exit 0
             fi
-            echo "Waiting for service to become healthy... attempt $i/30"
+
+            echo "Waiting for service to become healthy... attempt $i/36 (HTTP $HTTP_CODE)"
+            echo "Response body: $BODY"
             sleep 10
           done
 
           echo "Healthcheck failed"
           exit 1
+
+      - name: Dump Heroku logs on failure
+        if: failure() && steps.secret_check.outputs.do_deploy == 'true'
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+        run: heroku logs --tail --num 200 --app "$HEROKU_APP_NAME"
 
       - name: Deploy skipped
         if: steps.secret_check.outputs.do_deploy != 'true'
