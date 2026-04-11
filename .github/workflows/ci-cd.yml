@@ -165,7 +165,18 @@ jobs:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
           HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
           CI: true
-        run: heroku logs --num 200 --app "$HEROKU_APP_NAME"
+        run: |
+          echo "=== heroku ps ==="
+          heroku ps --app "$HEROKU_APP_NAME" || true
+
+          echo "=== heroku logs (source=app, dyno=web) ==="
+          heroku logs --source app --dyno web --num 400 --app "$HEROKU_APP_NAME" || true
+
+          echo "=== heroku logs (source=heroku, dyno=web) ==="
+          heroku logs --source heroku --dyno web --num 200 --app "$HEROKU_APP_NAME" || true
+
+          echo "=== heroku logs (last 200 mixed) ==="
+          heroku logs --num 200 --app "$HEROKU_APP_NAME" || true
 
       - name: Deploy skipped
         if: steps.secret_check.outputs.do_deploy != 'true'
