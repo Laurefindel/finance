@@ -115,7 +115,9 @@ jobs:
       - name: Health check
         if: steps.secret_check.outputs.do_deploy == 'true'
         env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
           HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+          CI: true
         run: |
           APP_URL=$(heroku apps:info --app "$HEROKU_APP_NAME" --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["app"]["web_url"].rstrip("/"))')
           HEALTH_URL="$APP_URL/actuator/health"
