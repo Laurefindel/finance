@@ -13,6 +13,7 @@
 .vscode/
 target/
 logs/
+jmeter/
 
 # Package Files #
 *.jar
