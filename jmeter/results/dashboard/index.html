@@ -35,7 +35,7 @@
 
 <body>
     <div id="wrapper">
-        <nav class="navbar navbar-default navbar-static-top" role="navigation" aria-label="Main navigation" style="margin-bottom: 0">
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                     <span class="sr-only">Toggle navigation</span>
@@ -45,7 +45,7 @@
                 </button>
                 <a class="navbar-brand" href="index.html">Apache JMeter Dashboard</a>
             </div>
-            <nav class="navbar-default sidebar" aria-label="Sidebar navigation">
+            <div class="navbar-default sidebar" role="navigation">
                 <div class="sidebar-nav navbar-collapse">
                     <ul class="nav" id="side-menu">
                         <li>
@@ -77,7 +77,7 @@
                         </li>
                     </ul>
                 </div>
-            </nav>
+            </div>
         </nav>
         <div id="page-wrapper">
             <div class="row">
@@ -88,23 +88,17 @@
                         </div>
                         <div class="panel-body">
                         <table id="generalInfos" class="table table-bordered table-condensed " >
-                            <thead>
-                                <tr>
-                                    <th class="sr-only">Property</th>
-                                    <th class="sr-only">Value</th>
-                                </tr>
-                            </thead>
                             <tr>
                                 <td>Source file</td>
                                 <td>"results.jtl"</td>
                             </tr>
                             <tr>
                                 <td>Start Time</td>
-                                <td>"4/10/26, 8:36 PM"</td>
+                                <td>"4/15/26, 1:34 AM"</td>
                             </tr>
                             <tr>
                                 <td>End Time</td>
-                                <td>"4/10/26, 8:36 PM"</td>
+                                <td>"4/15/26, 1:35 AM"</td>
                             </tr>
                                 <tr>
                                     <td>Filter for display</td>
@@ -123,11 +117,6 @@
                         <div class="panel-body">
                             <section id="apdex" class="col-md-12 table-responsive">
                                 <table id="apdexTable" class="table table-bordered table-condensed tablesorter ">
-                                    <thead>
-                                        <tr>
-                                            <th class="sr-only">Apdex metrics</th>
-                                        </tr>
-                                    </thead>
                                 </table>
                             </section>
                         </div>
@@ -154,11 +143,6 @@
                 <div class="panel-body ">
                     <section class="col-md-12 table-responsive">
                         <table id="statisticsTable" class="table table-bordered table-condensed tablesorter " >
-                            <thead>
-                                <tr>
-                                    <th class="sr-only">Statistics metrics</th>
-                                </tr>
-                            </thead>
                         </table>
                     </section>
                 </div>
@@ -171,11 +155,6 @@
                     <div class="panel-body">
                         <section class="col-md-12 table-responsive">
                             <table id="errorsTable" class="table table-bordered table-condensed tablesorter ">
-                                <thead>
-                                    <tr>
-                                        <th class="sr-only">Error metrics</th>
-                                    </tr>
-                                </thead>
                             </table>
                         </section>
                     </div>
@@ -189,11 +168,6 @@
                     <div class="panel-body">
                         <section class="col-md-12 table-responsive">
                             <table id="top5ErrorsBySamplerTable" class="table table-bordered table-condensed tablesorter ">
-                                <thead>
-                                    <tr>
-                                        <th class="sr-only">Top sampler errors</th>
-                                    </tr>
-                                </thead>
                             </table>
                         </section>
                     </div>
