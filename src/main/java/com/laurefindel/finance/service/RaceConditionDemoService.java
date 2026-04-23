@@ -78,9 +78,7 @@ public class RaceConditionDemoService {
         private int value;
 
         void increment() {
-            int next = value + 1;
-            Thread.yield();
-            value = next;
+            value++;
         }
 
         int get() {

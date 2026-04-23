@@ -381,9 +381,10 @@ The demo compares:
 
 ## JMeter Load Testing
 
-JMeter test plan:
+JMeter test plans:
 
 - `jmeter/async-metrics-load-test.jmx`
+- `jmeter/full-api-load-test.jmx`
 
 Scenario:
 
@@ -393,14 +394,27 @@ Scenario:
 - endpoint `GET /async/replenish/metrics`
 - total samples: 2000
 
-### Run command
+### Run full API load test (recommended)
 
 ```bash
-jmeter -n \
-  -t jmeter/async-metrics-load-test.jmx \
-  -l jmeter/results/results.jtl \
-  -j jmeter/results/summary.log \
-  -e -o jmeter/results/dashboard
+./jmeter/run-full-api-load-test.sh
+```
+
+Quick smoke run:
+
+```bash
+USERS=1 LOOPS=1 RAMP=1 ./jmeter/run-full-api-load-test.sh
+```
+
+### Manual run command
+
+```bash
+./.tools/apache-jmeter-5.6.3/bin/jmeter -n -f \
+  -t "$PWD/jmeter/full-api-load-test.jmx" \
+  -JroleId=1 -JcurrencyId=1 -JoperationId=10 \
+  -l "$PWD/jmeter/results/results.jtl" \
+  -j "$PWD/jmeter/results/summary.log" \
+  -e -o "$PWD/jmeter/results/dashboard"
 ```
 
 ### Results (run on 2026-04-10)
