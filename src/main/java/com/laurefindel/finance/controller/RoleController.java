@@ -60,8 +60,8 @@ public class RoleController {
     @PostMapping
     @Operation(summary = "Create role")
     public ResponseEntity<RoleDto> create(@Valid @RequestBody RoleDto dto) {
-        roleService.save(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        RoleDto savedRole = roleService.save(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedRole);
     }
 
     @DeleteMapping("/{id}")

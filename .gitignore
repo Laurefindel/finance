@@ -14,6 +14,7 @@
 target/
 logs/
 jmeter/
+.codex
 
 # Package Files #
 *.jar
