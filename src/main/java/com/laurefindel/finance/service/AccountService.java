@@ -28,13 +28,16 @@ public class AccountService {
     private final AccountMapper mapper;
     private final CurrencyRepository currencyRepository;
     private final UserRepository userRepository;
+    private final FinancialOperationSearchCache operationSearchCache;
 
     public AccountService(AccountRepository accountRepository, AccountMapper mapper,
-         CurrencyRepository currencyRepository, UserRepository userRepository) {
+         CurrencyRepository currencyRepository, UserRepository userRepository,
+         FinancialOperationSearchCache operationSearchCache) {
         this.accountRepository = accountRepository;
         this.mapper = mapper;
         this.currencyRepository = currencyRepository;
         this.userRepository = userRepository;
+        this.operationSearchCache = operationSearchCache;
     }
 
     public Optional<AccountResponseDto> getById(Long id) {
@@ -63,6 +66,7 @@ public class AccountService {
         LOG.info("Deleting account id={}", id);
         Account account = accountRepository.findById(id).orElseThrow();
         accountRepository.delete(account);
+        operationSearchCache.invalidate();
     }
 
     public List<AccountResponseDto> getByUserId(Long userId) {

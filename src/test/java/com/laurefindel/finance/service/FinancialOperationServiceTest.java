@@ -49,6 +49,9 @@ class FinancialOperationServiceTest {
     @Mock
     private FinancialOperationMapper mapper;
 
+    @Mock
+    private FinancialOperationSearchCache operationSearchCache;
+
     @InjectMocks
     private FinancialOperationService service;
 

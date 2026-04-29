@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,14 +38,15 @@ public class FinancialOperationService {
     private final FinancialOperationRepository repository;
     private final AccountService accountService;
     private final FinancialOperationMapper mapper;
-    private final Map<FinancialOperationSearchKey, Page<FinancialOperationResponseDto>> operationSearchIndex =
-        new HashMap<>();
+    private final FinancialOperationSearchCache operationSearchCache;
 
     public FinancialOperationService(FinancialOperationRepository repository,
-         AccountService accountService, FinancialOperationMapper mapper) {
+         AccountService accountService, FinancialOperationMapper mapper,
+         FinancialOperationSearchCache operationSearchCache) {
         this.repository = repository;
         this.accountService = accountService;
         this.mapper = mapper;
+        this.operationSearchCache = operationSearchCache;
     }
 
     public List<FinancialOperationResponseDto> getAll() {
@@ -135,7 +135,7 @@ public class FinancialOperationService {
             useNativeQuery
         );
 
-        Page<FinancialOperationResponseDto> cached = operationSearchIndex.get(key);
+        Page<FinancialOperationResponseDto> cached = operationSearchCache.get(key);
         if (cached != null) {
             LOG.debug("CACHE HIT: searchWithFilters");
             return cached;
@@ -149,7 +149,7 @@ public class FinancialOperationService {
 
         Page<FinancialOperationResponseDto> resultPage = operationsPage
             .map(mapper::toFinancialOperationResponseDto);
-        operationSearchIndex.put(key, resultPage);
+        operationSearchCache.put(key, resultPage);
         LOG.debug("Search completed totalElements={} totalPages={}",
             resultPage.getTotalElements(), resultPage.getTotalPages());
         return resultPage;
@@ -269,8 +269,6 @@ public class FinancialOperationService {
     }
 
     public void invalidateSearchIndex() {
-        int previousSize = operationSearchIndex.size();
-        operationSearchIndex.clear();
-        LOG.debug("CACHE INVALIDATED: operationSearchIndex cleared (previousSize={})", previousSize);
+        operationSearchCache.invalidate();
     }
 }

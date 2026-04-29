@@ -21,10 +21,13 @@ public class CurrencyService {
 
     private final CurrencyRepository currencyRepository;
     private final CurrencyMapper mapper;
+    private final FinancialOperationSearchCache operationSearchCache;
 
-    public CurrencyService(CurrencyRepository currencyRepository, CurrencyMapper mapper) {
+    public CurrencyService(CurrencyRepository currencyRepository, CurrencyMapper mapper,
+         FinancialOperationSearchCache operationSearchCache) {
         this.currencyRepository = currencyRepository;
         this.mapper = mapper;
+        this.operationSearchCache = operationSearchCache;
     }
 
     public Optional<CurrencyResponseDto> getById(Long id) {
@@ -48,6 +51,7 @@ public class CurrencyService {
         LOG.info("Deleting currency id={}", id);
         Currency currency = currencyRepository.findById(id).orElseThrow();
         currencyRepository.delete(currency);
+        operationSearchCache.invalidate();
     }
 
     public List<CurrencyResponseDto> getByName(String name) {

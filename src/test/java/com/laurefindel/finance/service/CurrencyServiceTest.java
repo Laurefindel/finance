@@ -31,6 +31,9 @@ class CurrencyServiceTest {
     @Mock
     private CurrencyMapper mapper;
 
+    @Mock
+    private FinancialOperationSearchCache operationSearchCache;
+
     @InjectMocks
     private CurrencyService service;
 
@@ -127,9 +130,14 @@ class CurrencyServiceTest {
     }
 
     @Test
-    void delete_shouldDelegateToRepository() {
+    void delete_shouldDeleteCurrencyAndInvalidateOperationSearchCache() {
+        Currency entity = new Currency();
+        when(currencyRepository.findById(4L)).thenReturn(Optional.of(entity));
+
         service.delete(4L);
-        verify(currencyRepository).deleteById(4L);
+
+        verify(currencyRepository).delete(entity);
+        verify(operationSearchCache).invalidate();
     }
 
     @Test

@@ -41,6 +41,9 @@ class UserServiceTest {
     @Mock
     private CurrencyService currencyService;
 
+    @Mock
+    private FinancialOperationSearchCache operationSearchCache;
+
     @InjectMocks
     private UserService service;
 
@@ -170,9 +173,14 @@ class UserServiceTest {
     }
 
     @Test
-    void delete_shouldDelegateToRepository() {
+    void delete_shouldDeleteUserAndInvalidateOperationSearchCache() {
+        User user = new User();
+        when(repository.findById(9L)).thenReturn(Optional.of(user));
+
         service.delete(9L);
-        verify(repository).deleteById(9L);
+
+        verify(repository).delete(user);
+        verify(operationSearchCache).invalidate();
     }
 
     @Test

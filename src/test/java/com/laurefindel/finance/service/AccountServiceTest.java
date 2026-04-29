@@ -44,6 +44,9 @@ class AccountServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private FinancialOperationSearchCache operationSearchCache;
+
     @InjectMocks
     private AccountService service;
 
@@ -134,9 +137,14 @@ class AccountServiceTest {
     }
 
     @Test
-    void delete_shouldDelegateToRepository() {
+    void delete_shouldDeleteAccountAndInvalidateOperationSearchCache() {
+        Account account = new Account();
+        when(accountRepository.findById(3L)).thenReturn(Optional.of(account));
+
         service.delete(3L);
-        verify(accountRepository).deleteById(3L);
+
+        verify(accountRepository).delete(account);
+        verify(operationSearchCache).invalidate();
     }
 
     @Test

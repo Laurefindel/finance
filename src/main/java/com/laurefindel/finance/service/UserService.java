@@ -26,13 +26,16 @@ public class UserService {
     private final RoleService roleService;
     private final UserMapper mapper;
     private final CurrencyService currencyService;
+    private final FinancialOperationSearchCache operationSearchCache;
 
     public UserService(UserRepository repository, RoleService roleService,
-         UserMapper mapper, CurrencyService currencyService) {
+         UserMapper mapper, CurrencyService currencyService,
+         FinancialOperationSearchCache operationSearchCache) {
         this.repository = repository;
         this.roleService = roleService;
         this.mapper = mapper;
         this.currencyService = currencyService;
+        this.operationSearchCache = operationSearchCache;
     }
 
     public Optional<UserResponseDto> getById(Long id) {
@@ -73,6 +76,7 @@ public class UserService {
         LOG.info("Deleting user id={}", id);
         User user = repository.findById(id).orElseThrow();
         repository.delete(user);
+        operationSearchCache.invalidate();
     }
 
     @Transactional
