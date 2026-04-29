@@ -342,9 +342,11 @@ class FinancialOperationServiceTest {
         FinancialOperation operation = new FinancialOperation();
         FinancialOperationResponseDto mapped = new FinancialOperationResponseDto();
         Page<FinancialOperation> operationPage = new PageImpl<>(List.of(operation));
+        Page<FinancialOperationResponseDto> cachedPage = new PageImpl<>(List.of(mapped));
 
         when(repository.searchWithFiltersJpql(eq(criteria), any(Pageable.class))).thenReturn(operationPage);
         when(mapper.toFinancialOperationResponseDto(operation)).thenReturn(mapped);
+        when(operationSearchCache.get(any())).thenReturn(null, cachedPage);
 
         Page<FinancialOperationResponseDto> first = service.searchWithFilters(criteria, pageable, false);
         Page<FinancialOperationResponseDto> second = service.searchWithFilters(criteria, pageable, false);
@@ -352,6 +354,8 @@ class FinancialOperationServiceTest {
         assertEquals("USD", criteria.getCurrencyCode());
         assertEquals(1, first.getTotalElements());
         assertEquals(1, second.getTotalElements());
+        verify(operationSearchCache, times(2)).get(any());
+        verify(operationSearchCache, times(1)).put(any(), any());
         verify(repository, times(1)).searchWithFiltersJpql(eq(criteria), any(Pageable.class));
     }
 

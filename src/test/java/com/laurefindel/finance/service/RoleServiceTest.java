@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,9 +64,19 @@ class RoleServiceTest {
     }
 
     @Test
-    void delete_shouldDelegateToRepository() {
+    void delete_shouldDetachUsersAndDeleteRole() {
+        Role role = new Role();
+        role.setId(4L);
+        User user = new User();
+        user.setRoles(new HashSet<>(Set.of(role)));
+        role.setUsers(new HashSet<>(Set.of(user)));
+
+        when(roleRepository.findById(4L)).thenReturn(java.util.Optional.of(role));
+
         service.delete(4L);
-        verify(roleRepository).deleteById(4L);
+
+        assertTrue(user.getRoles().isEmpty());
+        verify(roleRepository).delete(role);
     }
 
     @Test
