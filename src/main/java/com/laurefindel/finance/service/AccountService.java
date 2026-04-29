@@ -18,6 +18,8 @@ import com.laurefindel.finance.repository.AccountRepository;
 import com.laurefindel.finance.repository.CurrencyRepository;
 import com.laurefindel.finance.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class AccountService {
     private static final Logger LOG = LoggerFactory.getLogger(AccountService.class);
@@ -56,9 +58,11 @@ public class AccountService {
         return mapper.toAccountResponseDto(accountEntity);
     }
 
+    @Transactional
     public void delete(Long id) {
-        LOG.info("Deleting account");
-        accountRepository.deleteById(id);
+        LOG.info("Deleting account id={}", id);
+        Account account = accountRepository.findById(id).orElseThrow();
+        accountRepository.delete(account);
     }
 
     public List<AccountResponseDto> getByUserId(Long userId) {

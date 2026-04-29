@@ -13,6 +13,8 @@ import com.laurefindel.finance.mapper.CurrencyMapper;
 import com.laurefindel.finance.model.entity.Currency;
 import com.laurefindel.finance.repository.CurrencyRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class CurrencyService {
     private static final Logger LOG = LoggerFactory.getLogger(CurrencyService.class);
@@ -41,9 +43,11 @@ public class CurrencyService {
         return mapper.toCurrencyResponseDto(currencyRepository.save(mapper.toCurrency(currency)));
     }
 
+    @Transactional
     public void delete(Long id) {
-        LOG.info("Deleting currency");
-        currencyRepository.deleteById(id);
+        LOG.info("Deleting currency id={}", id);
+        Currency currency = currencyRepository.findById(id).orElseThrow();
+        currencyRepository.delete(currency);
     }
 
     public List<CurrencyResponseDto> getByName(String name) {

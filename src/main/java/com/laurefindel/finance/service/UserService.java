@@ -15,7 +15,6 @@ import com.laurefindel.finance.repository.UserRepository;
 import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,9 +68,11 @@ public class UserService {
             .toUserResponseDto(repository.save(mapper.toUser(user)));
     }
 
+    @Transactional
     public void delete(Long id) {
-        LOG.info("Deleting user");
-        repository.deleteById(id);
+        LOG.info("Deleting user id={}", id);
+        User user = repository.findById(id).orElseThrow();
+        repository.delete(user);
     }
 
     @Transactional
@@ -86,9 +87,7 @@ public class UserService {
         account.setStatus("ACTIVE");
         account.setCurrency(defaultCurrency);
         account.setUser(user);
-        List<Account> accounts = new ArrayList<>();
-        accounts.add(account);
-        user.setAccounts(accounts);
+        user.getAccounts().add(account);
         user.getRoles().add(roleService.getEntityByName("User").orElseThrow());
 
         User savedUser = repository.save(user);
@@ -122,4 +121,3 @@ public class UserService {
         return mapper.toUserResponseDto(savedUser);
     }
 }
-

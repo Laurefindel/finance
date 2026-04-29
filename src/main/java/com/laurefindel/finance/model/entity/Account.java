@@ -1,6 +1,7 @@
 package com.laurefindel.finance.model.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -32,10 +33,10 @@ public class Account {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "senderAccount")
+    @OneToMany(mappedBy = "senderAccount", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<FinancialOperation> outcomingOperations;
 
-    @OneToMany(mappedBy = "receiverAccount")
+    @OneToMany(mappedBy = "receiverAccount", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<FinancialOperation> incomingOperations;
 
     @Column(nullable = false)

@@ -1,5 +1,6 @@
 package com.laurefindel.finance.service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -13,6 +14,8 @@ import com.laurefindel.finance.mapper.RoleMapper;
 import com.laurefindel.finance.model.entity.Role;
 import com.laurefindel.finance.model.entity.User;
 import com.laurefindel.finance.repository.RoleRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class RoleService {
@@ -41,9 +44,15 @@ public class RoleService {
         return mapper.toRoleDto(roleRepository.save(mapper.toRole(role)));
     }
 
+    @Transactional
     public void delete(Long id) {
-        LOG.info("Deleting role");
-        roleRepository.deleteById(id);
+        LOG.info("Deleting role id={}", id);
+        Role role = roleRepository.findById(id).orElseThrow();
+        Set<User> users = new HashSet<>(role.getUsers());
+        for (User user : users) {
+            user.getRoles().remove(role);
+        }
+        roleRepository.delete(role);
     }
 
     public List<RoleDto> getAll() {
